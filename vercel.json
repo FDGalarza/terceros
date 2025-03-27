@@ -2,18 +2,14 @@
     "version": 2,
     "builds": [
       {
-        "src": "manage.py",
+        "src": "vercel_wsgi.py",
         "use": "@vercel/python"
       }
     ],
     "routes": [
       {
-        "src": "/procesar_csv/(.*)",
-        "dest": "/manage.py"
-      },
-      {
         "src": "/(.*)",
-        "dest": "/manage.py"
+        "dest": "/vercel_wsgi.py"
       }
     ]
   }
