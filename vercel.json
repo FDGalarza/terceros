@@ -1,0 +1,15 @@
+{
+    "builds": [
+        {
+            "src": "orocesar_csv/wsgi.py",
+            "use": "@vercel/python"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "orocesar_csv/wsgi.py"
+        }
+        
+    ]
+}
