@@ -3,6 +3,8 @@ import pandas as pd
 from django.shortcuts import render
 from django.contrib import messages
 from .forms import CSVUploadFrom
+from openpyxl import Workbook
+from django.http import HttpResponse
 
 def procesar_csv(request):
     context = {}
@@ -119,8 +121,19 @@ def procesar_csv(request):
                                                                            'Primer nombre del informado', 'Otros nombres del informado',
                                                                            'Razón social informado', 'País de residencia o domicilio'], how='left') 
                      
-                     #crea archivo excel
-                     df_grouped.to_excel(output_file_name, index=False, engine='openpyxl')
+                     # Crea el archivo Excel en memoria
+                     output = io.BytesIO()
+
+                     # Usa el motor 'openpyxl' para escribir el archivo Excel
+                     with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                        df_grouped.to_excel(writer, index=False, sheet_name='Resumen')
+
+                     # Prepara la respuesta HTTP para enviar el archivo como una descarga
+                     response = HttpResponse(output.getvalue(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                     response['Content-Disposition'] = 'attachment; filename="1007_san_m.xlsx"'
+
+                     # Retorna la respuesta con el archivo Excel generado
+                     return response
 
                  
 
