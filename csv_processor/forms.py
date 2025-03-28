@@ -11,4 +11,4 @@ class CSVUploadFrom(forms.Form):
     #Campo para seleccionar el tipo de formato
     file_format = forms.ChoiceField(choices=FILE_CHOICES, label="Selecciona el Formato")
     #Campo para cargar el archvo CSV
-    csv_file = forms.FileField(label="Selecciona un archivo CSV")
+    csv_file = forms.FileField(label="")
