@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from django.shortcuts import render
 from django.contrib import messages
@@ -13,9 +14,13 @@ def procesar_csv(request):
             archivo     = request.FILES['csv_file']
             print(archivo.name)
             pd.set_option('display.max_rows', None)
-            #nombre del archivo
-            output_file_name = f"C:/formatos/{archivo.name}"
-            output_file_name = output_file_name.replace('csv', 'xlsx')
+            
+            # Obtener el directorio donde está el archivo CSV que se sube
+            csv_directory = os.path.dirname(archivo.name)  # obtiene el directorio del archivo CSV
+
+            # Crear la ruta completa para el archivo de salida en el mismo directorio
+            output_file_name = os.path.join(csv_directory, archivo.name)  # Usa el mismo nombre de archivo
+            output_file_name = output_file_name.replace('csv', 'xlsx')  # Cambia la extensión de '.csv' a '.xlsx'
 
             try:
                 
