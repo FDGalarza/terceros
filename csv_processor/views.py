@@ -45,6 +45,7 @@ def procesar_csv(request):
                 
                 #procesar segun el formato seleccionado
                 if file_format == '1006':
+                    
                     #convierte a numerico los valores de la columna impouestos doscontables
                     df[' Impuesto generado '] = pd.to_numeric(df[' Impuesto generado '], errors='coerce')
                     
@@ -68,8 +69,20 @@ def procesar_csv(request):
                                                                           'Primer nombre del informado', 'Otros nombres del informado',
                                                                           'Razón social informado'], how='left') 
                     
-                    #crea archivo excel
-                    df_grouped.to_excel(output_file_name, index=False, engine='openpyxl')
+                    # Crea el archivo Excel en memoria
+                    output = io.BytesIO()
+
+                     # Usa el motor 'openpyxl' para escribir el archivo Excel
+                    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                        df_grouped.to_excel(writer, index=False, sheet_name='Resumen')
+
+                     # Prepara la respuesta HTTP para enviar el archivo como una descarga
+                    response = HttpResponse(output.getvalue(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                    response['Content-Disposition'] = 'attachment; filename="1007_san_m.xlsx"'
+
+                     # Retorna la respuesta con el archivo Excel generado
+                    return response
+
 
                 elif file_format == '1005':
 
@@ -79,22 +92,34 @@ def procesar_csv(request):
                     df[' IVA resultante por devoluciones en ventas anuladas, rescindidas o resueltas '] = pd.to_numeric(df[' IVA resultante por devoluciones en ventas anuladas, rescindidas o resueltas '], errors='coerce')
                     
                     #agrupa y suma los valores de la columna I
-                    df_grouped_I = df.groupby(['Numero de identificaci¢n del informado', 'Tipo de Documento', 'DV', 
+                    df_grouped_I = df.groupby(['Numero de identificación del informado', 'Tipo de Documento', 'DV', 
                                              'Primer apellido del informado', 'Segundo apellido del informado',
                                              'Razón social informado'])[' Impuesto descontable '].sum().reset_index()
                     
                     #agrupa y suma los valores de la columna J
-                    df_grouped_J = df.groupby(['Numero de identificaci¢n del informado', 'Tipo de Documento', 'DV', 
+                    df_grouped_J = df.groupby(['Numero de identificación del informado', 'Tipo de Documento', 'DV', 
                                              'Primer apellido del informado', 'Segundo apellido del informado',
                                              'Razón social informado'])[' IVA resultante por devoluciones en ventas anuladas, rescindidas o resueltas '].sum().reset_index()
                     
                     # hace merge de las columnas sumasdas con las demas columbas
-                    df_grouped = pd.merge(df_grouped_I, df_grouped_J, on=['Numero de identificaci¢n del informado', 'Tipo de Documento', 'DV', 
+                    df_grouped = pd.merge(df_grouped_I, df_grouped_J, on=['Numero de identificación del informado', 'Tipo de Documento', 'DV', 
                                                                           'Primer apellido del informado', 'Segundo apellido del informado',
                                                                           'Razón social informado'], how='left') 
                     
-                    #crea archivo excel
-                    df_grouped.to_excel(output_file_name, index=False, engine='openpyxl')
+                    # Crea el archivo Excel en memoria
+                    output = io.BytesIO()
+
+                     # Usa el motor 'openpyxl' para escribir el archivo Excel
+                    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                        df_grouped.to_excel(writer, index=False, sheet_name='Resumen')
+
+                     # Prepara la respuesta HTTP para enviar el archivo como una descarga
+                    response = HttpResponse(output.getvalue(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                    response['Content-Disposition'] = 'attachment; filename="1007_san_m.xlsx"'
+
+                     # Retorna la respuesta con el archivo Excel generado
+                    return response
+
 
                 elif file_format == '1007':
                      
