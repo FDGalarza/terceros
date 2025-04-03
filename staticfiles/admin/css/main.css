@@ -1,0 +1,214 @@
+    /* Resetear algunos estilos básicos */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    /* Body y HTML para una base más limpia */
+    body, html {
+        height: 100%;
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        background-color: #f4f7fc; /* Fondo claro pero moderno */
+        color: #333; /* Color de texto oscuro para mejor contraste */
+    }
+    
+    /* Contenedor principal para centrar contenido */
+    .container {
+        display: flex;
+        justify-content: center; /* Centrado horizontal */
+        align-items: center;     /* Centrado vertical */
+        height: 100%;             /* Ocupa toda la altura de la ventana */
+        padding: 20px;
+    }
+    
+    /* Estilo del formulario con un diseño más limpio */
+    .form-container {
+        background-color: #ffffff;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
+        border: 1px solid #e0e0e0;
+    }
+    
+    /* Títulos con una tipografía más llamativa */
+    h1, h3 {
+        font-weight: 600;
+        margin-bottom: 30px;
+        color: #2c3e50;
+    }
+    
+    /* Estilo para el formulario */
+    form {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Estilo para los inputs */
+    .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+    }
+    
+    .form-group label {
+        font-size: 16px;
+        color: #34495e;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-group input[type="file"] {
+        width: 100%;
+        padding: 12px;
+        margin-top: 8px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 16px;
+        background-color: #f5f6fa;
+        transition: all 0.3s ease;
+    }
+    
+    /* Efecto al pasar el ratón sobre los inputs */
+    .form-group input[type="file"]:hover {
+        border-color: #2980b9;
+    }
+    
+    /* Botón de envío con efecto hover */
+    button[type="submit"] {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 14px 30px;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 18px;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    
+    button[type="submit"]:hover {
+        background-color: #2980b9;
+        transform: translateY(-3px); /* Sombra al hacer hover */
+    }
+    
+    /* Mensajes de alerta */
+    .alert {
+        padding: 15px;
+        margin-top: 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: opacity 0.3s ease;
+    }
+    
+    /* Alertas de éxito */
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    /* Alertas de error */
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    /* Estilo de la tabla */
+    .table-responsive {
+        margin-top: 30px;
+        padding: 15px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        overflow-x: auto;
+    }
+    
+    /* Estilo para las celdas de la tabla */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+    
+    table th, table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    table th {
+        background-color: #f9f9f9;
+        color: #34495e;
+        font-weight: bold;
+    }
+    
+    /* Estilos generales para el nav */
+    nav {
+        background-color: #2980b9; /* Azul vibrante */
+        padding: 15px 0;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    nav ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+    }
+    
+    nav ul li {
+        margin: 0 20px;
+    }
+    
+    nav ul li a {
+        text-decoration: none;
+        color: white;
+        font-size: 18px;
+        font-weight: 500;
+        padding: 10px 20px;
+        border-radius: 30px;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    
+    nav ul li a:hover {
+        background-color: #3498db;
+        color: #fff;
+        transform: scale(1.05); /* Efecto de escala */
+    }
+    
+    /* Estilos para enlaces deshabilitados */
+    .disabled-link {
+        pointer-events: none;
+        color: #b0b0b0;
+        text-decoration: none;
+    }
+    
+    /* Adaptación a pantallas pequeñas (móviles) */
+    @media (max-width: 768px) {
+        nav ul {
+            flex-direction: column;
+        }
+    
+        nav ul li {
+            margin: 10px 0;
+        }
+    
+        .form-container {
+            padding: 20px;
+        }
+    
+        button[type="submit"] {
+            width: 100%;
+        }
+    }
+    
+    
+    
