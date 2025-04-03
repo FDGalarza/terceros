@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Herramientas Exogena{% endblock %}</title>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles/main.css' %}">
+</head>
+<body>
+    
+    <head>
+        <nav>
+            <h1 class="nav-title">Menu</h1>  <!-- Título dentro del nav -->
+            <img src="{% static 'images/logo.jpg' %}" alt="Logo" class="nav-logo">
+            <ul>
+                <li >
+                    <a href="{% url 'procesar_csv' %}" class="{% if request.resolver_match.url_name == 'procesar_csv' %}active{% endif %}">Consolidar Terceros CSV</a>
+                </li>
+                <li >
+                    <a href="{% url 'procesar_excel' %}" class="{% if request.resolver_match.url_name == 'procesar_excel' %}active{% endif %}">Consolidar Terceros Excel</a>
+                </li>
+                <li >
+                    <a href="{% url 'procesar_proveedores' %}" class="{% if request.resolver_match.url_name == 'procesar_proveedores' %}active{% endif %}">Proveedores</a>
+                </li>
+            </ul>
+        </nav>
+    </head>
+    <main class="container mt-5">
+        
+        {% block content %}
+        <!-- El contenido específico de cada página se insertará aquí -->
+        {% endblock %}
+
+       
+    </main>
+
+</body>
+</html>
