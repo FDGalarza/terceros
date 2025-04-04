@@ -6,7 +6,7 @@
         <div class="form-container">
             <h1>Consolidar Terceros Exogena</h1>
             <h2>Procesar archivo csv</h2>
-
+          
             <!-- Formulario de carga de archivo con selección de formato -->
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -17,8 +17,7 @@
                 <button type="submit">Procesar archivo</button>
             </form>
 
-            <!-- Incluir el modal desde el template modal_template.html -->
-            {% include 'csv_processor/estructura_archivo.html' %}
+            
 
             {% if data %}
                 <h2 class="my-4">Datos procesados:</h2>
@@ -44,95 +43,7 @@
             <!-- Contenedor donde se mostrará la estructura en formato de tabla -->
         
         </div>
-        
-         <!-- Incluir jQuery (asegúrate de que esta línea está antes de cualquier script que use jQuery) -->
-        <!-- Incluir jQuery -->
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-        <!-- Incluir Bootstrap JS después de jQuery -->
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-        <script>
-            // Función para mostrar la tabla dentro del modal con la estructura seleccionada
-            function mostrarEstructura() {
-                var formato = document.getElementById("id_file_format");
-        
-                if (formato) {
-                    var formatoValue = formato.value;
-        
-                    // Si no se seleccionó ningún formato, retornamos
-                    if (!formatoValue) {
-                        console.error("No se seleccionó ningún formato");
-                        return;
-                    }
-        
-                    // Mostrar el modal
-                    $('#estructuraModal').modal('show');  // Aquí estamos usando jQuery para abrir el modal
-        
-                    // Limpiar la tabla antes de agregar nuevos datos
-                    var theadTabla = document.getElementById("estructura_tabla").querySelector("thead");
-                    var tbodyTabla = document.getElementById("estructura_tabla").querySelector("tbody");
-        
-                    theadTabla.innerHTML = '';
-                    tbodyTabla.innerHTML = '';
-        
-                    var encabezados;
-                    // Definir los encabezados según el formato seleccionado
-                    if (formatoValue === '1005') {
-                        encabezados = [
-                            "Tipo de Documento",
-                            "Numero de identificación del informado",
-                            "DV",
-                            "Primer apellido del informado",
-                            "Segundo apellido del informado",
-                            "Otros nombres del informado",
-                            "Razón social informado",
-                            "Impuesto descontable",
-                            "IVA resultante por devoluciones en ventas anuladas, rescindidas o resueltas"
-                        ];
-                    } else if (formatoValue === '1006') {
-                        encabezados = [
-                            "Código de Producto",
-                            "Descripción del Producto",
-                            "Cantidad",
-                            "Precio",
-                            "Importe Total"
-                        ];
-                    } else if (formatoValue === '1007') {
-                        encabezados = [
-                            "Fecha de Compra",
-                            "Código del Producto",
-                            "Cantidad Comprada",
-                            "Valor Total"
-                        ];
-                    } else {
-                        return;
-                    }
-        
-                    // Crear la fila de encabezados
-                    var filaEncabezados = document.createElement('tr');
-                    encabezados.forEach(function(item) {
-                        var th = document.createElement('th');
-                        th.textContent = item;
-                        filaEncabezados.appendChild(th);
-                    });
-                    theadTabla.appendChild(filaEncabezados);
-        
-                
-                } else {
-                    console.error('El campo de selección de formato no se encuentra en el DOM.');
-                }
-            }
-        
-            // Ejecutar la función cuando el DOM esté cargado completamente
-            document.addEventListener('DOMContentLoaded', function() {
-                var formatoElement = document.getElementById("id_file_format");
-        
-                if (formatoElement) {
-                    formatoElement.addEventListener("change", mostrarEstructura);  // Detectar cambio en el select
-                } else {
-                    console.error('El campo de selección de formato no se encuentra en el DOM.');
-                }
-            });
-        </script>
-        
+        <!-- Incluir el modal desde el template modal_template.html -->
+        {% include 'csv_processor/estructura_archivo.html' %}
+    
 {% endblock %}

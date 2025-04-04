@@ -38,16 +38,7 @@
                 {% endfor %}
             {% endif %}
         </div>
-    </div>
-    <script>
-        // Función para ocultar las alertas después de 5 segundos
-        window.onload = function() {
-            setTimeout(function() {
-                var alerts = document.querySelectorAll('.alert');
-                alerts.forEach(function(alert) {
-                    alert.style.display = 'none';
-                });
-            }, 5000); // Las alertas desaparecen después de 5 segundos
-        };
-    </script>
+    <!-- Incluir el modal desde el template modal_template.html -->
+    {% include 'csv_processor/estructura_archivo.html' %}
+    
 {% endblock %}

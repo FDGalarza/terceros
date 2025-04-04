@@ -5,37 +5,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Herramientas Exogena{% endblock %}</title>
-
+    
     {% load static %}
     <link rel="stylesheet" href="{% static 'styles/main.css' %}">
 </head>
-<body>
+    <body>
     
-    <head>
-        <nav>
-            <h1 class="nav-title">Menu</h1>  <!-- Título dentro del nav -->
-            <img src="{% static 'images/logo.jpg' %}" alt="Logo" class="nav-logo">
-            <ul>
-                <li >
-                    <a href="{% url 'procesar_csv' %}" class="{% if request.resolver_match.url_name == 'procesar_csv' %}active{% endif %}">Consolidar Terceros CSV</a>
+        <!-- Barra lateral -->
+        <div class="sidebar">
+            <div class="text-center">
+                <h1 class="nav-title">Menu</h1>
+                <img src="{% static 'images/logo.jpg' %}" alt="Logo" class="nav-logo">
+            </div>
+            <ul class="flex-column">
+                <li class="nav-item">
+                    <a href="{% url 'procesar_csv' %}" class="nav-link {% if request.resolver_match.url_name == 'procesar_csv' %}active{% endif %}">Consolidar Terceros CSV</a>
                 </li>
-                <li >
-                    <a href="{% url 'procesar_excel' %}" class="{% if request.resolver_match.url_name == 'procesar_excel' %}active{% endif %}">Consolidar Terceros Excel</a>
+                <li class="nav-item">
+                    <a href="{% url 'procesar_excel' %}" class="nav-link {% if request.resolver_match.url_name == 'procesar_excel' %}active{% endif %}">Consolidar Terceros Excel</a>
                 </li>
-                <li >
-                    <a href="{% url 'procesar_proveedores' %}" class="{% if request.resolver_match.url_name == 'procesar_proveedores' %}active{% endif %}">Proveedores</a>
+                <li class="nav-item">
+                    <a href="{% url 'procesar_proveedores' %}" class="nav-link {% if request.resolver_match.url_name == 'procesar_proveedores' %}active{% endif %}">Proveedores</a>
                 </li>
             </ul>
-        </nav>
-    </head>
-    <main class="container mt-5">
-        
-        {% block content %}
-        <!-- El contenido específico de cada página se insertará aquí -->
-        {% endblock %}
+        </div>
+        <!-- Contenido principal -->
+        <div class="main-content">
+            
+            <main class="container mt-5">
+                {% block content %}
+                    <!-- El contenido específico de cada página se insertará aquí -->
+                {% endblock %}
+                
+            </main>
+        </div>
+        <!-- Incluir jQuery (asegúrate de que esta línea está antes de cualquier script que use jQuery) -->
+        <!-- Agregar jQuery -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-       
-    </main>
-
-</body>
+        <!-- Agregar Bootstrap JS (Bootstrap 4 o 5, según tu versión) -->
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+        <script src="{% static 'js/main.js' %}"></script>
+    </body>
 </html>
