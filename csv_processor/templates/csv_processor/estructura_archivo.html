@@ -1,19 +1,20 @@
-<!-- Modal (ventana emergente) -->
-<div class="modal fade" id="estructuraModal" tabindex="-1" role="dialog" aria-labelledby="estructuraModalLabel" aria-hidden="true" style="display: block;">
+<!-- Modal -->
+<div class="modal fade" id="estructuraDialog" tabindex="-1" role="dialog" aria-labelledby="estructuraDialogLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="estructuraModalLabel">Estructura del archivo seleccionado</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <table id="estructura_tabla" class="table table-striped">
-                    <thead></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="estructuraDialogLabel">Estructura del archivo seleccionado</h5>
+          <button type="button" class="btn btn-secondary btn-custom" data-bs-dismiss="modal" aria-label="Close" onclick="cerrarModal()">
+            <span aria-hidden="true">Cerrar</span>
+          </button>
         </div>
+        <div class="modal-body">
+          <table id="estructura_tabla" class="table table-striped">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+  
