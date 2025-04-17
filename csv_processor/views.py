@@ -213,43 +213,27 @@ def procesar_excel(request):
                 # Reemplaza las celdas vacías por texto vacío ('') en todo el DataFrame
                 df = df.fillna(0)
                 df = df.applymap(lambda x: '' if x == 0 else x)
-<<<<<<< HEAD
+
                 df.columns = df.columns.str.strip()
                 print(df.columns)
-=======
-
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
                 # Procesar según el formato seleccionado
                 if file_format == '1006':
                     # Convierte a numérico los valores de la columna impuestos descontables
                     df['Impuesto generado'] = pd.to_numeric(df['Impuesto generado'], errors='coerce')
-<<<<<<< HEAD
                     print
                     df['IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas'] = pd.to_numeric(df['IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas'], errors='coerce')
-=======
-                    
-                    df[' IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas '] = pd.to_numeric(df[' IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas '], errors='coerce')
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
                     
                     # Agrupa y suma los valores de la columna I
                     df_grouped_I = df.groupby(['Tipo de Documento', 'Número identificación', 'DV',
                                                'Primer apellido del informado', 'Segundo apellido del informado',
                                                'Primer nombre del informado', 'Otros nombres del informado',
-<<<<<<< HEAD
-                                               'Razón social informado'])['Impuesto generado'].sum().reset_index()
-=======
                                                'Razón social informado'])[' Impuesto generado '].sum().reset_index()
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
                     
                     # Agrupa y suma los valores de la columna J
                     df_grouped_J = df.groupby(['Tipo de Documento', 'Número identificación', 'DV',
                                                'Primer apellido del informado', 'Segundo apellido del informado',
                                                'Primer nombre del informado', 'Otros nombres del informado',
-<<<<<<< HEAD
                                                'Razón social informado'])['IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas'].sum().reset_index()
-=======
-                                               'Razón social informado'])[' IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas '].sum().reset_index()
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
                     
                     # Hace merge de las columnas sumadas con las demás columnas
                     df_grouped = pd.merge(df_grouped_I, df_grouped_J, on=['Tipo de Documento', 'Número identificación', 'DV',
@@ -286,36 +270,22 @@ def procesar_excel(request):
 
                 elif file_format == '1007':
                     # Convierte a numérico los valores de la columna impuestos descontables
-<<<<<<< HEAD
                     df['Ingresos brutos recibidos'] = pd.to_numeric(df['Ingresos brutos recibidos '], errors='coerce')
                     
                     df['Devoluciones, rebajas y descuentos'] = pd.to_numeric(df['Devoluciones, rebajas y descuentos'], errors='coerce')
-=======
-                    df[' Ingresos brutos recibidos  '] = pd.to_numeric(df[' Ingresos brutos recibidos  '], errors='coerce')
-                    
-                    df[' Devoluciones, rebajas y descuentos '] = pd.to_numeric(df[' Devoluciones, rebajas y descuentos '], errors='coerce')
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
 
                     # Agrupar por NIT y sumar valores
                     # Agrupa y suma los valores de la columna I
                     df_grouped_I = df.groupby(['Concepto', 'Tipo de documento', 'Número identificación del informado',
                                                 'Primer apellido del informado', 'Segundo apellido del informado',
                                                 'Primer nombre del informado', 'Otros nombres del informado',
-<<<<<<< HEAD
                                                 'Razón social informado', 'País de residencia o domicilio'])['Ingresos brutos recibidos'].sum().reset_index()
-=======
-                                                'Razón social informado', 'País de residencia o domicilio'])[' Ingresos brutos recibidos  '].sum().reset_index()
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
                     
                     # Agrupa y suma los valores de la columna J
                     df_grouped_J = df.groupby(['Concepto', 'Tipo de documento', 'Número identificación del informado',
                                                 'Primer apellido del informado', 'Segundo apellido del informado',
                                                 'Primer nombre del informado', 'Otros nombres del informado',
-<<<<<<< HEAD
                                                 'Razón social informado', 'País de residencia o domicilio'])['Devoluciones, rebajas y descuentos'].sum().reset_index()
-=======
-                                                'Razón social informado', 'País de residencia o domicilio'])[' Devoluciones, rebajas y descuentos '].sum().reset_index()
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
                      
                      # Hace merge de las columnas sumadas con las demás columnas
                     df_grouped = pd.merge(df_grouped_I, df_grouped_J, on=['Concepto', 'Tipo de documento', 'Número identificación del informado',
@@ -435,11 +405,7 @@ que permite descargar el archivo Excel generado."""
 def crear_archivo_excel_respuesta(df, output_file_name, file_sheet):
    
     """
-<<<<<<< HEAD
     :param df: El DataFrame de pandas que contiene los datos a cdincluir en el archivo Excel.
-=======
-    :param df: El DataFrame de pandas que contiene los datos a incluir en el archivo Excel.
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
     :param output_file_name: El nombre del archivo Excel que se enviará como descarga.
     :return: Respuesta HTTP con el archivo Excel generado.
     """
@@ -453,7 +419,6 @@ def crear_archivo_excel_respuesta(df, output_file_name, file_sheet):
     response['Content-Disposition'] = f'attachment; filename="{output_file_name}"'
     return response
 
-<<<<<<< HEAD
 #Vista para gestionar tareas
 def tablero_kanban(request):
     hoy = date.today()
@@ -531,7 +496,3 @@ def actualizar_estado_tarea(request):
             return JsonResponse({'success': False, 'error': str(e)})
 
     return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
-=======
-
-    
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d

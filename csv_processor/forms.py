@@ -1,8 +1,5 @@
 from django import forms
-<<<<<<< HEAD
 from .models import Tarea
-=======
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
 
 # Opciones de formato para el archivo CSV (estructuras diferentes)
 FILE_CHOICES = [
@@ -32,7 +29,6 @@ class ExcelUploadFrom(forms.Form):
     #Campo para seleccionar el tipo de formato
     excel_file_proveedor = forms.FileField(label="Proveedores")
 
-<<<<<<< HEAD
 #Formulario tareas
 class TareaForm(forms.ModelForm):
     class Meta:
@@ -42,6 +38,4 @@ class TareaForm(forms.ModelForm):
             'fecha': forms.DateInput(attrs={'type': 'date'})  # Usar un widget de tipo 'date' para seleccionar fechas
         }
 
-=======
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
 
