@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <title>{% block title %}Accounter Tools{% endblock %}</title>
+=======
+    <title>{% block title %}Herramientas Exogena{% endblock %}</title>
+>>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
     
     {% load static %}
     <link rel="stylesheet" href="{% static 'styles/main.css' %}">
@@ -14,7 +18,11 @@
         <!-- Barra lateral -->
         <div class="sidebar">
             <div class="text-center">
+<<<<<<< HEAD
                 <h1 class="nav-title">Accounter Tools</h1>
+=======
+                <h1 class="nav-title">Menu</h1>
+>>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
                 <img src="{% static 'images/logo.jpg' %}" alt="Logo" class="nav-logo">
             </div>
             <ul class="flex-column">
@@ -27,9 +35,12 @@
                 <li class="nav-item">
                     <a href="{% url 'procesar_proveedores' %}" class="nav-link {% if request.resolver_match.url_name == 'procesar_proveedores' %}active{% endif %}">Proveedores</a>
                 </li>
+<<<<<<< HEAD
                 <li class="nav-item">
                     <a href="{% url 'kanban' %}" class="nav-link {% if request.resolver_match.url_name == 'kanban' %}active{% endif %}">Tareas</a>
                 </li>
+=======
+>>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
             </ul>
         </div>
         <!-- Contenido principal -->
@@ -48,9 +59,13 @@
 
         <!-- Agregar Bootstrap JS (Bootstrap 4 o 5, según tu versión) -->
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<<<<<<< HEAD
         <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
         <script src="{% static 'js/main.js' %}?v={{ version }}"></script>
+=======
+        <script src="{% static 'js/main.js' %}"></script>
+>>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
     </body>
 </html>

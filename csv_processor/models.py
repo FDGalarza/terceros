@@ -1,4 +1,5 @@
 from django.db import models
+<<<<<<< HEAD
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -33,3 +34,7 @@ def crear_o_actualizar_perfil(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
     instance.profile.save()
+=======
+
+# Create your models here.
+>>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
