@@ -25,7 +25,12 @@ SECRET_KEY = 'django-insecure-17u&5sxv9d+zxc^368at&p6o+cdj(4^0h&o-*790-wwi-2++=^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['vercel.app', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'terceros-dbced8ett-fdgalarzas-projects.vercel.app',
+    'terceros.vercel.app',  # <-- este es el nuevo dominio que hay que permitir
+]
 
 
 # Application definition
