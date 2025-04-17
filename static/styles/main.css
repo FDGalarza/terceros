@@ -199,6 +199,25 @@ nav {
     
 }
 
+.kanban-column {
+    float: left;
+    width: 30%;
+    margin: 1%;
+    padding: 1%;
+    border: 1px solid #ccc;
+    min-height: 300px;
+}
+.tarea {
+    background-color: #f4f4f4;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+
+.kanban-column.pendiente { background-color: #fff3cd; border-color: #ffeeba; }
+.kanban-column.en-progreso { background-color: #d1ecf1; border-color: #bee5eb; }
+.kanban-column.completadas { background-color: #d4edda; border-color: #c3e6cb; }
+
+
 .nav-logo {
     width: 150px; /* Ajusta el tamaño del logo según necesites */
     height: auto;
@@ -243,8 +262,8 @@ nav {
 }
 
 /* Estilo cuando el enlace está activo (en la ruta actual) */
-.sidebar ul li.active {
-    background-color: #b97b29; /* Color cuando está activo */
+.active {
+    background-color: #33356d; /* Color cuando está activo */
     color: white; /* Color del texto cuando está activo */
 }
 
@@ -277,6 +296,8 @@ nav {
     border-color: #3498db;
     box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
 }
+
+
 
 /* Estilo para los campos de tipo <select> y otros campos en pantallas pequeñas */
 @media (max-width: 768px) {
@@ -368,7 +389,7 @@ nav {
     /* Asegúrate de que el modal tenga un z-index más alto */
     .modal {
             z-index: 1050 !important; /* Z-index predeterminado de Bootstrap para modales */
-            border-radius: 15px;
+            border-radius: 20px;
     }
 
     .modal-backdrop {

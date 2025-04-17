@@ -1,12 +1,25 @@
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.http import JsonResponse
 import os
 import io
 import pandas as pd
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib import messages
-from .forms import CSVUploadForm , ExcelUploadFrom
+from .forms import CSVUploadForm , ExcelUploadFrom, TareaForm
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill
 from django.http import HttpResponse
+from datetime import date
+from calendar import monthrange
+from .models import Tarea, User
+
+
+def obtener_usuario_predeterminado():
+    return User.objects.get(username='Eliana')  # o el username que hayas creado
+
+    # en tu vista:
+    usuario = request.user if request.user.is_authenticated else obtener_usuario_predeterminado()
 
 
 def procesar_csv(request):
@@ -188,25 +201,26 @@ def procesar_excel(request):
                 # Reemplaza las celdas vacías por texto vacío ('') en todo el DataFrame
                 df = df.fillna(0)
                 df = df.applymap(lambda x: '' if x == 0 else x)
-
+                df.columns = df.columns.str.strip()
+                print(df.columns)
                 # Procesar según el formato seleccionado
                 if file_format == '1006':
                     # Convierte a numérico los valores de la columna impuestos descontables
                     df['Impuesto generado'] = pd.to_numeric(df['Impuesto generado'], errors='coerce')
-                    
-                    df[' IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas '] = pd.to_numeric(df[' IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas '], errors='coerce')
+                    print
+                    df['IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas'] = pd.to_numeric(df['IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas'], errors='coerce')
                     
                     # Agrupa y suma los valores de la columna I
                     df_grouped_I = df.groupby(['Tipo de Documento', 'Número identificación', 'DV',
                                                'Primer apellido del informado', 'Segundo apellido del informado',
                                                'Primer nombre del informado', 'Otros nombres del informado',
-                                               'Razón social informado'])[' Impuesto generado '].sum().reset_index()
+                                               'Razón social informado'])['Impuesto generado'].sum().reset_index()
                     
                     # Agrupa y suma los valores de la columna J
                     df_grouped_J = df.groupby(['Tipo de Documento', 'Número identificación', 'DV',
                                                'Primer apellido del informado', 'Segundo apellido del informado',
                                                'Primer nombre del informado', 'Otros nombres del informado',
-                                               'Razón social informado'])[' IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas '].sum().reset_index()
+                                               'Razón social informado'])['IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas'].sum().reset_index()
                     
                     # Hace merge de las columnas sumadas con las demás columnas
                     df_grouped = pd.merge(df_grouped_I, df_grouped_J, on=['Tipo de Documento', 'Número identificación', 'DV',
@@ -243,22 +257,22 @@ def procesar_excel(request):
 
                 elif file_format == '1007':
                     # Convierte a numérico los valores de la columna impuestos descontables
-                    df[' Ingresos brutos recibidos  '] = pd.to_numeric(df[' Ingresos brutos recibidos  '], errors='coerce')
+                    df['Ingresos brutos recibidos'] = pd.to_numeric(df['Ingresos brutos recibidos '], errors='coerce')
                     
-                    df[' Devoluciones, rebajas y descuentos '] = pd.to_numeric(df[' Devoluciones, rebajas y descuentos '], errors='coerce')
+                    df['Devoluciones, rebajas y descuentos'] = pd.to_numeric(df['Devoluciones, rebajas y descuentos'], errors='coerce')
 
                     # Agrupar por NIT y sumar valores
                     # Agrupa y suma los valores de la columna I
                     df_grouped_I = df.groupby(['Concepto', 'Tipo de documento', 'Número identificación del informado',
                                                 'Primer apellido del informado', 'Segundo apellido del informado',
                                                 'Primer nombre del informado', 'Otros nombres del informado',
-                                                'Razón social informado', 'País de residencia o domicilio'])[' Ingresos brutos recibidos  '].sum().reset_index()
+                                                'Razón social informado', 'País de residencia o domicilio'])['Ingresos brutos recibidos'].sum().reset_index()
                     
                     # Agrupa y suma los valores de la columna J
                     df_grouped_J = df.groupby(['Concepto', 'Tipo de documento', 'Número identificación del informado',
                                                 'Primer apellido del informado', 'Segundo apellido del informado',
                                                 'Primer nombre del informado', 'Otros nombres del informado',
-                                                'Razón social informado', 'País de residencia o domicilio'])[' Devoluciones, rebajas y descuentos '].sum().reset_index()
+                                                'Razón social informado', 'País de residencia o domicilio'])['Devoluciones, rebajas y descuentos'].sum().reset_index()
                      
                      # Hace merge de las columnas sumadas con las demás columnas
                     df_grouped = pd.merge(df_grouped_I, df_grouped_J, on=['Concepto', 'Tipo de documento', 'Número identificación del informado',
@@ -378,7 +392,7 @@ que permite descargar el archivo Excel generado."""
 def crear_archivo_excel_respuesta(df, output_file_name, file_sheet):
    
     """
-    :param df: El DataFrame de pandas que contiene los datos a incluir en el archivo Excel.
+    :param df: El DataFrame de pandas que contiene los datos a cdincluir en el archivo Excel.
     :param output_file_name: El nombre del archivo Excel que se enviará como descarga.
     :return: Respuesta HTTP con el archivo Excel generado.
     """
@@ -392,5 +406,80 @@ def crear_archivo_excel_respuesta(df, output_file_name, file_sheet):
     response['Content-Disposition'] = f'attachment; filename="{output_file_name}"'
     return response
 
+#Vista para gestionar tareas
+def tablero_kanban(request):
+    hoy = date.today()
+    primer_dia = hoy.replace(day=1)
+    ultimo_dia = hoy.replace(day=monthrange(hoy.year, hoy.month)[1])
 
-    
+    if request.user.is_authenticated:
+        usuario = request.user
+    else:
+        usuario = User.objects.get(username='Eliana')
+
+    tareas_pendientes = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='pendiente', usuario=usuario)
+    tareas_en_progreso = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='en_progreso', usuario=usuario)
+    tareas_completadas = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='completada', usuario=usuario)
+
+    context = {
+        'hoy': hoy,
+        'tareas_por_estado': {
+            'pendiente': tareas_pendientes,
+             'en_progreso': tareas_en_progreso,
+             'completada': tareas_completadas,
+        },
+    }
+    return render(request, 'csv_processor/kanban.html', context)
+
+
+def crear_tarea(request):
+    if request.method == 'POST':
+
+        nombre = request.POST.get('nombre')
+        descripcion = request.POST.get('descripcion')
+        fecha = request.POST.get('fecha')
+
+        if nombre and descripcion and fecha:
+            try:
+                # Si el usuario no está autenticado, usar un usuario por defecto
+                if request.user.is_authenticated:
+                    usuario = request.user
+                else:
+                    # Cambia "admin" por el nombre de tu usuario predeterminado
+                    usuario = User.objects.get(username='Eliana')
+
+                tarea = Tarea(
+                    titulo=nombre,
+                    descripcion=descripcion,
+                    fecha=fecha,
+                    usuario=usuario,
+                )
+                tarea.save()
+                return redirect('kanban')
+
+            except Exception as e:
+                print("Error al guardar la tarea:", e)
+        else:
+            print("Datos incompletos")
+
+    return render(request, 'csv_processor/crear_tarea.html')
+
+@csrf_exempt
+def actualizar_estado_tarea(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            tarea_id = tarea_id = data.get('tarea_id') or data.get('id')
+            nuevo_estado = data.get('estado')
+            tarea = Tarea.objects.get(id=tarea_id)
+            tarea.estado = nuevo_estado
+            print(tarea.estado)
+            tarea.save()
+            print(f"Tarea {tarea.id} actualizada a estado '{nuevo_estado}', fecha: {tarea.fecha}")
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            print("Error al actualizar la tarea:", str(e))
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)

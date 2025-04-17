@@ -1,0 +1,53 @@
+{% extends 'csv_processor/head.html' %}
+{% block title %}Accounter Tools{% endblock %}
+
+{% block content %}
+<h1>Tablero Kanban - {{ hoy }}</h1>
+
+<div class="kanban-board" data-id="{{ tarea.id }}" style="display: flex; gap: 20px; justify-content: space-between; font-family: Arial, sans-serif;">
+    {% for estado, tareas in tareas_por_estado.items %}
+        <div class="kanban-column"
+             data-estado="{{ estado }}"
+             ondragover="event.preventDefault()"
+             ondrop="moverTarea(event, this)" 
+             style="border: 1px solid #ccc; padding: 15px; width: 30%; border-radius: 8px; background-color: #f8f9fa; min-height: 300px;">
+             <h2 style="text-align: center;">
+                {% if estado == 'pendiente' %}Pendiente
+                {% elif estado == 'en_progreso' %}En Progreso
+                {% elif estado == 'completada' %}Completada
+                {% endif %}
+            </h2>
+
+            {% for tarea in tareas %}
+                <div class="kanban-card"
+                    draggable="true"
+                    data-id="{{ tarea.id }}"
+                    ondragstart="iniciarArrastre(event)"
+                    style="background-color: 
+                        {% if estado == 'pendiente' %}#fff3cd
+                        {% elif estado == 'en_progreso' %}#d1ecf1
+                        {% elif estado == 'completada' %}#d4edda
+                        {% else %}#e2e3e5
+                        {% endif %}; 
+                        border: 1px solid #ccc;
+                        margin-bottom: 10px;
+                        padding: 10px;
+                        border-radius: 5px;
+                        box-shadow: 1px 1px 4px rgba(0,0,0,0.05);">
+                    <strong>{{ tarea.nombre }}</strong><br>
+                    <small>📅 Creada: {{ tarea.fecha }}</small><br>
+                    <small>⏳ Vence: {{ tarea.fecha_vencimiento }}</small><br>
+                    <p style="margin-top: 5px;">{{ tarea.titulo }}</p>
+                </div>
+            {% empty %}
+                <p style="text-align: center; font-style: italic;">No hay tareas</p>
+            {% endfor %}
+
+        </div>
+    {% endfor %}
+</div>
+<div id="url-actualizar-estado" data-url="{% url 'actualizar_estado_tarea' %}"></div>
+
+<a href="{% url 'crear_tarea' %}">Crear una nueva tarea</a>
+
+{% endblock %}

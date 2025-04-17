@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Herramientas Exogena{% endblock %}</title>
+    <title>{% block title %}Accounter Tools{% endblock %}</title>
     
     {% load static %}
     <link rel="stylesheet" href="{% static 'styles/main.css' %}">
@@ -14,7 +14,7 @@
         <!-- Barra lateral -->
         <div class="sidebar">
             <div class="text-center">
-                <h1 class="nav-title">Menu</h1>
+                <h1 class="nav-title">Accounter Tools</h1>
                 <img src="{% static 'images/logo.jpg' %}" alt="Logo" class="nav-logo">
             </div>
             <ul class="flex-column">
@@ -26,6 +26,9 @@
                 </li>
                 <li class="nav-item">
                     <a href="{% url 'procesar_proveedores' %}" class="nav-link {% if request.resolver_match.url_name == 'procesar_proveedores' %}active{% endif %}">Proveedores</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'kanban' %}" class="nav-link {% if request.resolver_match.url_name == 'kanban' %}active{% endif %}">Tareas</a>
                 </li>
             </ul>
         </div>
@@ -45,6 +48,9 @@
 
         <!-- Agregar Bootstrap JS (Bootstrap 4 o 5, según tu versión) -->
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-        <script src="{% static 'js/main.js' %}"></script>
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <script src="{% static 'js/main.js' %}?v={{ version }}"></script>
     </body>
 </html>
