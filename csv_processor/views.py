@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import JsonResponse
@@ -21,17 +20,6 @@ def obtener_usuario_predeterminado():
 
     # en tu vista:
     usuario = request.user if request.user.is_authenticated else obtener_usuario_predeterminado()
-=======
-import os
-import io
-import pandas as pd
-from django.shortcuts import render
-from django.contrib import messages
-from .forms import CSVUploadForm , ExcelUploadFrom
-from openpyxl import Workbook
-from openpyxl.styles import PatternFill
-from django.http import HttpResponse
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
 
 
 def procesar_csv(request):

@@ -199,7 +199,6 @@ nav {
     
 }
 
-<<<<<<< HEAD
 .kanban-column {
     float: left;
     width: 30%;
@@ -219,8 +218,6 @@ nav {
 .kanban-column.completadas { background-color: #d4edda; border-color: #c3e6cb; }
 
 
-=======
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
 .nav-logo {
     width: 150px; /* Ajusta el tamaño del logo según necesites */
     height: auto;
@@ -265,13 +262,8 @@ nav {
 }
 
 /* Estilo cuando el enlace está activo (en la ruta actual) */
-<<<<<<< HEAD
 .active {
     background-color: #33356d; /* Color cuando está activo */
-=======
-.sidebar ul li.active {
-    background-color: #b97b29; /* Color cuando está activo */
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
     color: white; /* Color del texto cuando está activo */
 }
 
@@ -305,11 +297,8 @@ nav {
     box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
 }
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
 /* Estilo para los campos de tipo <select> y otros campos en pantallas pequeñas */
 @media (max-width: 768px) {
     .form-control {
@@ -400,11 +389,7 @@ nav {
     /* Asegúrate de que el modal tenga un z-index más alto */
     .modal {
             z-index: 1050 !important; /* Z-index predeterminado de Bootstrap para modales */
-<<<<<<< HEAD
             border-radius: 20px;
-=======
-            border-radius: 15px;
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
     }
 
     .modal-backdrop {

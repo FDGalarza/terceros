@@ -3,7 +3,6 @@ function mostrarEstructura() {
     var formato = document.getElementById("id_file_format");
     
     // Verificar si el campo de selección existe antes de acceder a su valor
-<<<<<<< HEAD
     if (formato) {
         var formatoValue = formato.value;
         
@@ -18,25 +17,6 @@ function mostrarEstructura() {
         }
 
         // Obtener las tablas thead y tbody
-=======
-    
-    if (formato) {
-        var formatoValue = formato.value;
-        console.log()
-        // Verificar si el valor de formatoValue no está vacío o es '0'
-        if (formatoValue == '0') {  // Si el valor está vacío o es '0', no mostrar el diálogo
-            console.error("No se seleccionó ningún formato válido");
-            $('#estructuraDialog').modal('hide'); // Mostrar el modal
-            return;
-        }else{
-            // Mostrar el modal solo cuando se selecciona un formato válido
-           $('#estructuraDialog').modal('show'); // Mostrar el modal
-        }
-
-        
-        
-
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
         var theadTabla = document.getElementById("estructura_tabla").querySelector("thead");
         var tbodyTabla = document.getElementById("estructura_tabla").querySelector("tbody");
 
@@ -48,7 +28,6 @@ function mostrarEstructura() {
         var encabezados;
         if (formatoValue === '1005') { // Formato 1005
             encabezados = [
-<<<<<<< HEAD
                 "Tipo de Documento", "Numero de identificación del informado", "DV",
                 "Primer apellido del informado", "Segundo apellido del informado", 
                 "Otros nombres del informado", "Razón social informado", 
@@ -60,49 +39,14 @@ function mostrarEstructura() {
                 "Primer apellido del informado", "Segundo apellido del informado", 
                 "Otros nombres del informado", "Razón social informado", 
                 "Impuesto generado", "IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas",
-=======
-                "Tipo de Documento",
-                "Numero de identificación del informado",
-                "DV",
-                "Primer apellido del informado",
-                "Segundo apellido del informado",
-                "Otros nombres del informado",
-                "Razón social informado",
-                "Impuesto descontable",
-                "IVA resultante por devoluciones en ventas anuladas, rescindidas o resueltas"
-            ];
-        } else if (formatoValue === '1006') { // Formato 1006
-            encabezados = [
-                "Tipo de Documento",
-                "Numero de identificación",
-                "DV",
-                "Primer apellido del informado",
-                "Segundo apellido del informado",
-                "Otros nombres del informado",
-                "Razón social informado",
-                "Impuesto generado",
-                "IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas",
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
                 "Impuesto al consumo"
             ];
         } else if (formatoValue === '1007') { // Formato 1007
             encabezados = [
-<<<<<<< HEAD
                 "Concepto", "Tipo de documento", "Número identificación del informado",
                 "Primer apellido del informado", "Segundo apellido del informado", 
                 "Primer nombre del informado", "Otros nombres del informado", 
                 "País de residencia o domicilio", "Ingresos brutos recibidos ",
-=======
-                "Concepto",
-                "Tipo de documento",
-                "Número identificación del informado",
-                "Primer apellido del informado",
-                "Segundo apellido del informado",
-                "Primer nombre del informado",
-                "Otros nombres del informado",
-                "País de residencia o domicilio",
-                "Ingresos brutos recibidos ",
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
                 "Devoluciones, rebajas y descuentos"
             ];
         } else {
@@ -125,44 +69,30 @@ function mostrarEstructura() {
 
     } else {
         console.log('El campo de selección de formato no se encuentra en el DOM.');
-<<<<<<< HEAD
         $('#estructuraDialog').modal('hide'); // Ocultar el modal si no existe
-=======
-        $('#estructuraDialog').modal('hide'); 
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
     }
 }
 
 // Función para cerrar el modal
 function cerrarModal() {
-<<<<<<< HEAD
     $('#estructuraDialog').modal('hide'); // Ocultar el modal
 }
-=======
-    $('#estructuraDialog').modal('hide'); // Mostrar el modal
-  }
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
 
 // Usamos 'DOMContentLoaded' para asegurar que el DOM esté completamente cargado antes de ejecutar el script
 document.addEventListener('DOMContentLoaded', function() {
     var formatoElement = document.getElementById("id_file_format");
-<<<<<<< HEAD
+
     const estructuraDialog = document.getElementById("estructuraDialog");
     if (estructuraDialog) {
         estructuraDialog.classList.add("hidden");
     }
-    if (formatoElement) {
-        console.log('Antes de formato.');
-        // Agregar el listener para detectar el cambio de selección
-        formatoElement.addEventListener("change", mostrarEstructura);
-=======
+
     document.getElementById("estructuraDialog").classList.add("hidden");
     if (formatoElement) {
         console.log('antes de formato.');
         // Agregar el listener para detectar el cambio de selección
         formatoElement.addEventListener("change", mostrarEstructura);
     
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
     } else {
         console.error('El campo de selección de formato no se encuentra en el DOM.');
     }
@@ -173,16 +103,11 @@ window.onload = function() {
     setTimeout(function() {
         var alerts = document.querySelectorAll('.alert');
         alerts.forEach(function(alert) {
-<<<<<<< HEAD
             alert.style.display = 'none'; // Ocultar las alertas
-=======
-            alert.style.display = 'none';
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
         });
     }, 5000); // Las alertas desaparecen después de 5 segundos
 };
 
-<<<<<<< HEAD
 let tareaArrastrada = null;
 
 // Iniciar el arrastre de tarea
@@ -241,6 +166,3 @@ function getCSRFToken() {
         .find(row => row.startsWith(name + '='))?.split('=')[1];
     return cookieValue;
 }
-=======
-
->>>>>>> 9064dc4d67308753a97110cdc708e6e32e4e2a0d
