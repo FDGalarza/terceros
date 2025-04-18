@@ -215,7 +215,7 @@ def procesar_excel(request):
                     df_grouped_I = df.groupby(['Tipo de Documento', 'Número identificación', 'DV',
                                                'Primer apellido del informado', 'Segundo apellido del informado',
                                                'Primer nombre del informado', 'Otros nombres del informado',
-                                               'Razón social informado'])[' Impuesto generado '].sum().reset_index()
+                                               'Razón social informado'])['Impuesto generado'].sum().reset_index()
                     
                     # Agrupa y suma los valores de la columna J
                     df_grouped_J = df.groupby(['Tipo de Documento', 'Número identificación', 'DV',
