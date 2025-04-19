@@ -2,9 +2,13 @@
 {% block title %}Accounter Tools{% endblock %}
 
 {% block content %}
-<h1>Tablero Kanban - {{ hoy }}</h1>
+<div class="form-container">
+    <h1>Pagina en construcción</h1>
+    <h2>Estamos majorando para su comodidad, Gracias pro su comprensión</h2>
+</div>
+<!--<h1>Tablero Kanban - {{ hoy }}</h1>-->
 
-<div class="kanban-board" data-id="{{ tarea.id }}" style="display: flex; gap: 20px; justify-content: space-between; font-family: Arial, sans-serif;">
+<!--<div class="kanban-board" data-id="{{ tarea.id }}" style="display: flex; gap: 20px; justify-content: space-between; font-family: Arial, sans-serif;">
     {% for estado, tareas in tareas_por_estado.items %}
         <div class="kanban-column"
              data-estado="{{ estado }}"
@@ -48,6 +52,6 @@
 </div>
 <div id="url-actualizar-estado" data-url="{% url 'actualizar_estado_tarea' %}"></div>
 
-<a href="{% url 'crear_tarea' %}">Crear una nueva tarea</a>
+<a href="{% url 'crear_tarea' %}">Crear una nueva tarea</a>-->
 
 {% endblock %}
