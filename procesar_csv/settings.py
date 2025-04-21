@@ -30,6 +30,8 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'terceros-dbced8ett-fdgalarzas-projects.vercel.app',
     'terceros.vercel.app',  # <-- este es el nuevo dominio que hay que permitir
+    'tercerosv2.vercel.app',
+    
 ]
 
 
