@@ -222,8 +222,10 @@ def procesar_excel(request):
                 if file_format == '1006':
                     # Convierte a numérico los valores de la columna impuestos descontables
                     df['Impuesto generado'] = pd.to_numeric(df['Impuesto generado'], errors='coerce')
-                    print
+                    
                     df['IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas'] = pd.to_numeric(df['IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas'], errors='coerce')
+                    
+                    df['Impuesto al consumo'] = pd.to_numeric(df['Impuesto al consumo'], errors='coerce')
                     
                     # Agrupa y suma los valores de la columna I
                     df_grouped_I = df.groupby(['Tipo de Documento', 'Número identificación', 'DV',
@@ -237,11 +239,25 @@ def procesar_excel(request):
                                                'Primer nombre del informado', 'Otros nombres del informado',
                                                'Razón social informado'])['IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas'].sum().reset_index()
                     
+                    # Agrupa y suma los valores de la columna J
+                    df_grouped_K = df.groupby(['Tipo de Documento', 'Número identificación', 'DV',
+                                               'Primer apellido del informado', 'Segundo apellido del informado',
+                                               'Primer nombre del informado', 'Otros nombres del informado',
+                                               'Razón social informado'])['Impuesto al consumo'].sum().reset_index()
+
                     # Hace merge de las columnas sumadas con las demás columnas
-                    df_grouped = pd.merge(df_grouped_I, df_grouped_J, on=['Tipo de Documento', 'Número identificación', 'DV',
+                    merged_ij = pd.merge(df_grouped_I, df_grouped_J, on=[ 'Tipo de Documento', 'Número identificación', 'DV',
                                                                           'Primer apellido del informado', 'Segundo apellido del informado',
                                                                           'Primer nombre del informado', 'Otros nombres del informado',
-                                                                          'Razón social informado'], how='left') 
+                                                                          'Razón social informado'
+                                                                        ], how='left')
+
+                    df_grouped = pd.merge(merged_ij, df_grouped_K, on=[
+                                                                        'Tipo de Documento', 'Número identificación', 'DV',
+                                                                        'Primer apellido del informado', 'Segundo apellido del informado',
+                                                                        'Primer nombre del informado', 'Otros nombres del informado',
+                                                                        'Razón social informado'
+                                                                      ], how='left')
                     
                     # Crea el archivo Excel en memoria
                     return crear_archivo_excel_respuesta(df_grouped, output_file_name, file_format)
