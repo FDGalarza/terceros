@@ -5,7 +5,7 @@
   "routes": [
     {
       "src": "/static/(.*)",
-      "dest": "staticfiles/$1"
+      "dest": "/staticfiles/$1"
     },
     {
       "src": "/(.*)",
