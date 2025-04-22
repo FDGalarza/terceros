@@ -79,6 +79,8 @@ WSGI_APPLICATION = 'procesar_csv.wsgi.app'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+print('DATABASE_URL')
+print(os.getenv('DATABASE_URL'))
 DATABASES = {
     'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
 }
