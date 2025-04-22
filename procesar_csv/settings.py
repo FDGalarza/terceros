@@ -28,7 +28,7 @@ load_dotenv()
 SECRET_KEY = 'django-insecure-17u&5sxv9d+zxc^368at&p6o+cdj(4^0h&o-*790-wwi-2++=^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"] 
 
@@ -79,7 +79,8 @@ WSGI_APPLICATION = 'procesar_csv.wsgi.app'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+print('DATABASE_URL')
+print(os.getenv('DATABASE_URL'))
 DATABASES = {
     'default': dj_database_url.config(
         default=os.getenv('DATABASE_URL'),
@@ -139,5 +140,3 @@ MEDIA_URL = '/media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-print("STATIC_ROOT:", STATIC_ROOT)
-print("STATICFILES_DIRS:", STATICFILES_DIRS if 'STATICFILES_DIRS' in globals() else 'No STATICFILES_DIRS set')
