@@ -82,7 +82,11 @@ WSGI_APPLICATION = 'procesar_csv.wsgi.app'
 print('DATABASE_URL')
 print(os.getenv('DATABASE_URL'))
 DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,  # Puedes configurar esto para mantener conexiones abiertas por más tiempo
+        ssl_require=True    # Asegúrate de que esté habilitado SSL para conexiones seguras
+    )
 }
 
 
