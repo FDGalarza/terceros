@@ -439,29 +439,34 @@ def crear_archivo_excel_respuesta(df, output_file_name, file_sheet):
 
 #Vista para gestionar tareas
 def tablero_kanban(request):
-    
-    hoy = date.today()
-    primer_dia = hoy.replace(day=1)
-    ultimo_dia = hoy.replace(day=monthrange(hoy.year, hoy.month)[1])
+    try:
+        hoy = date.today()
+        primer_dia = hoy.replace(day=1)
+        ultimo_dia = hoy.replace(day=monthrange(hoy.year, hoy.month)[1])
 
-    if request.user.is_authenticated:
-        usuario = request.user
-    else:
-        usuario = User.objects.get(username='Eliana')
+        if request.user.is_authenticated:
+            usuario = request.user
+        else:
+            usuario = User.objects.get(username='Eliana')
 
-    tareas_pendientes = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='pendiente', usuario=usuario)
-    tareas_en_progreso = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='en_progreso', usuario=usuario)
-    tareas_completadas = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='completada', usuario=usuario)
+        tareas_pendientes = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='pendiente', usuario=usuario)
+        tareas_en_progreso = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='en_progreso', usuario=usuario)
+        tareas_completadas = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='completada', usuario=usuario)
 
-    context = {
-        'hoy': hoy,
-        'tareas_por_estado': {
-            'pendiente': tareas_pendientes,
-             'en_progreso': tareas_en_progreso,
-             'completada': tareas_completadas,
-        },
-    }
-    return render(request, 'csv_processor/kanban.html', context)
+        context = {
+            'hoy': hoy,
+            'tareas_por_estado': {
+                'pendiente': tareas_pendientes,
+                'en_progreso': tareas_en_progreso,
+                'completada': tareas_completadas,
+            },
+        }
+        return render(request, 'csv_processor/kanban.html', context)
+    except Exception as e:
+        import traceback
+        print("⚠️ Error en vista kanban:", e)
+        traceback.print_exc()
+        return HttpResponse("Error interno del servidor", status=500)
 
 
 def crear_tarea(request):
