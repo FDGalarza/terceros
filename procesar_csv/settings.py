@@ -13,9 +13,12 @@ import os
 from pathlib import Path
 from decouple import config
 import dj_database_url
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv()
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-17u&5sxv9d+zxc^368at&p6o+cdj(4^0h&o-*790-wwi-2++=^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-EBUG = config("DEBUG", default=False, cast=bool)
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"] 
 
@@ -76,9 +79,8 @@ WSGI_APPLICATION = 'procesar_csv.wsgi.app'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
 DATABASES = {
-    'default': dj_database_url.parse(config('DATABASE_URL'))
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
 }
 
 
