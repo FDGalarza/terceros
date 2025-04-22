@@ -1,0 +1,419 @@
+    /* Resetear algunos estilos básicos */
+* {
+    margin: 15;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body y HTML para una base más limpia */
+body, html {
+    height: 100%;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f4f7fc; /* Fondo claro pero moderno */
+    color: #333; /* Color de texto oscuro para mejor contraste */
+}
+
+/* Contenedor principal para centrar contenido */
+.container {
+    display: flex;
+    flex-direction: column; /* Apilamos los elementos verticalmente */
+    justify-content: flex-start; /* Alineamos desde la parte superior */
+    align-items: center; /* Centrado horizontal */
+    height: 100%; /* Ocupa toda la altura de la pantalla */
+    background-color: #f4f7fc; /* Fondo claro */
+    padding: 20px;
+    width: 100%; /* Asegura que el contenedor ocupe todo el ancho de la pantalla */
+}
+
+/* Estilo del formulario con un diseño más limpio */
+.form-container {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px; /* Limitar el ancho máximo si lo deseas */
+    text-align: center;
+    border: 1px solid #e0e0e0;
+    margin-left: 120px;
+    display: flex;
+    flex-direction: column; /* Asegura que los elementos dentro se apilen verticalmente */
+    align-items: center; /* Centra los elementos horizontalmente */
+    justify-content: flex-start; /* Asegura que los elementos empiecen desde la parte superior */
+    height: auto; /* Asegura que el contenedor crezca en altura según el contenido */
+}
+
+/* Estilo para el h1 (Título) */
+h1 {
+    font-size: 1em; /* Tamaño grande */
+    font-weight: bold;
+    color: #fff; /* Color de texto blanco */
+    margin-top: 20px; /* Espacio desde la parte superior */
+    text-align: center; /* Centrado horizontal */
+    padding: 20px; /* Espacio interno (padding) */
+    background-color: #2980b9; /* Fondo de color sólido (azul) */
+    border-radius: 8px; /* Bordes redondeados */
+    width: 100%;
+}
+
+/* Estilo para el h3 (Subtítulo) */
+h3 {
+    font-size: 1.5em;
+    font-weight: normal;
+    color: #34495e;
+    margin-bottom: 20px;
+    text-align: center; /* Centrado horizontal */
+}
+
+/* Estilo para el formulario */
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Estilo para los inputs */
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    font-size: 16px;
+    color: #34495e;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.form-group input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #f5f6fa;
+    transition: all 0.3s ease;
+}
+
+/* Efecto al pasar el ratón sobre los inputs */
+.form-group input[type="file"]:hover {
+    border-color: #2980b9;
+}
+
+/* Botón de envío con efecto hover */
+button[type="submit"] {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 14px 30px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #2980b9;
+    transform: translateY(-3px); /* Sombra al hacer hover */
+}
+
+/* Mensajes de alerta */
+.alert {
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: opacity 0.3s ease;
+}
+
+/* Alertas de éxito */
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+/* Alertas de error */
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Estilo de la tabla */
+.table-responsive {
+    width: 100%; /* Hace que el contenedor de la tabla ocupe todo el ancho disponible */
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    overflow-x: auto; /* Permite el desplazamiento horizontal si la tabla es más ancha que el contenedor */
+    height: auto; /* Deja que la tabla se ajuste en altura de acuerdo con su contenido */
+}
+
+/* Estilo para las celdas de la tabla */
+.table {
+    width: 100%; /* Hace que la tabla ocupe todo el ancho disponible */
+    border: 1px solid rgb(139, 136, 136);
+    font-size: 12px;
+    height: auto; /* Ajusta la altura de la tabla según el contenido */
+}
+
+.table th, table td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.table th {
+    background-color: #f9f9f9;
+    color: #34495e;
+    font-weight: bold;
+    border: 1px solid rgb(139, 136, 136);
+}
+
+nav {
+    background-color: #2980b9; /* Azul vibrante */
+    padding: 20px 0px 30px 0px;  /* Padding (arriba, derecha, abajo, izquierda) */
+    text-align: center;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 250px;  /* Ajusta el ancho según lo necesites */
+    height: 100vh;  /* Hace que el nav ocupe toda la altura de la pantalla */
+    position: fixed; /* Asegura que el nav quede fijo en la pantalla */
+}
+
+.nav-title {
+    color: rgb(46, 44, 44);
+    font-size: 20px; /* Tamaño del título */
+    font-weight: bold; /* Fuente en negrita */
+    margin-bottom: 10px; /* Espacio debajo del título */
+    text-align: center; /* Centra el título dentro del nav */
+    padding: 20px;  /* Padding (arriba, derecha, abajo, izquierda) */
+    background-color: white; /* Fondo azul */
+    width: 100%;
+    
+    border-radius: 50%;
+    
+}
+
+.kanban-column {
+    float: left;
+    width: 30%;
+    margin: 1%;
+    padding: 1%;
+    border: 1px solid #ccc;
+    min-height: 300px;
+}
+.tarea {
+    background-color: #f4f4f4;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+
+.kanban-column.pendiente { background-color: #fff3cd; border-color: #ffeeba; }
+.kanban-column.en-progreso { background-color: #d1ecf1; border-color: #bee5eb; }
+.kanban-column.completadas { background-color: #d4edda; border-color: #c3e6cb; }
+
+
+.nav-logo {
+    width: 150px; /* Ajusta el tamaño del logo según necesites */
+    height: auto;
+    margin-bottom: 10px; /* Espacio entre el logo y el título */
+    margin-left: 40px;
+    border-radius: 50%;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column; /* Cambiado para que los elementos estén en columna */
+    align-items: flex-start; /* Alinea los elementos a la izquierda */
+}
+
+.sidebar ul li {
+    margin: 10px;
+    padding: 10px;
+    background-color: #1f6fa4;
+    border-radius: 10px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    width: 210px; /* Ancho fijo de 200px */
+    height: 60px; /* Altura fija de 50px */
+}
+
+.sidebar ul li a {
+    text-decoration: none;
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 10px 25px 15px 20px;
+    border-radius: 30px;
+    display: block;
+}
+
+.sidebar ul li a:hover {
+    background-color: #2980b9;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Estilo cuando el enlace está activo (en la ruta actual) */
+.active {
+    background-color: #33356d; /* Color cuando está activo */
+    color: white; /* Color del texto cuando está activo */
+}
+
+/* Estilos para enlaces deshabilitados */
+.disabled-link {
+    pointer-events: none;
+    color: #b0b0b0;
+    text-decoration: none;
+}
+/* Estilo para la clase form-control */
+.form-control {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #f5f6fa;
+    transition: all 0.3s ease;
+}
+
+/* Efecto de hover para la clase form-control */
+.form-control:hover {
+    border-color: #2980b9;
+}
+
+/* Estilo cuando el campo tiene el foco */
+.form-control:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+
+
+/* Estilo para los campos de tipo <select> y otros campos en pantallas pequeñas */
+@media (max-width: 768px) {
+    .form-control {
+        font-size: 14px;
+    }
+}
+
+
+
+ /* Barra lateral */
+ .sidebar {
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #2980b9;
+    padding-top: 20px;
+    z-index: 1000;
+}
+
+/* Cuando la pantalla es pequeña, ajustamos el diseño */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+}
+
+/* Estilo para los contenidos que deben ajustarse a la derecha de la barra lateral */
+.main-content {
+    margin-left: 260px;
+    padding: 20px;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+    }
+}
+    
+
+    /* Estilo para el modal */
+    .modal-content {
+        border-radius: 15px; /* Bordes redondeados para el modal */
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    }
+
+    .modal-header {
+        background-color: #2980b9; /* Fondo azul para el encabezado */
+        color: white; /* Texto blanco en el encabezado */
+        font-weight: bold; /* Negrita para el título */
+        text-align: center; /* Centrado del título */
+    }
+
+    .modal-header h5 {
+        font-size: 1.5rem; /* Tamaño de fuente más grande para el título */
+    }
+
+    .modal-body {
+        background-color: #f9f9f9; /* Fondo gris claro para el cuerpo */
+        padding: 30px; /* Espaciado dentro del cuerpo del modal */
+    }
+
+    /* Botón de cierre */
+    .close {
+        color: white; /* Color del icono de cierre */
+        font-size: 30px; /* Tamaño más grande para el ícono de cierre */
+        font-weight: bold; /* Negrita para el ícono de cierre */
+    }
+
+    /* Estilos adicionales para asegurar que el modal se vea bien en dispositivos pequeños */
+    @media (max-width: 768px) {
+        .modal-dialog {
+            max-width: 90%; /* Hacer que el modal ocupe el 90% del ancho en pantallas pequeñas */
+        }
+
+        .modal-header h5 {
+            font-size: 1.25rem; /* Reducir el tamaño del texto en pantallas pequeñas */
+        }
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    /* Asegúrate de que el modal tenga un z-index más alto */
+    .modal {
+            z-index: 1050 !important; /* Z-index predeterminado de Bootstrap para modales */
+            border-radius: 20px;
+    }
+
+    .modal-backdrop {
+        z-index: 1040 !important; /* Fondo del modal */
+    }
+
+    /* Estilo personalizado para el botón */
+.btn-custom {
+    background-color: #007bff; /* Color de fondo azul */
+    color: white; /* Color del texto */
+    border: 2px solid #0056b3; /* Borde más oscuro */
+    padding: 10px 20px; /* Relleno interno */
+    font-size: 16px; /* Tamaño de fuente */
+    border-radius: 50px; /* Bordes redondeados */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Sombra */
+    transition: all 0.3s ease; /* Transición suave */
+    cursor: pointer; /* Cambiar el cursor a mano */
+    margin-top: 10px;
+  }
+  
+  /* Efecto al pasar el mouse sobre el botón */
+  .btn-custom:hover {
+    background-color: #0056b3; /* Cambiar color al pasar el mouse */
+    border-color: #004085; /* Cambiar borde al pasar el mouse */
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2); /* Aumentar la sombra */
+  }
+
