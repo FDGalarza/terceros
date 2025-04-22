@@ -3,7 +3,17 @@
     { "src": "vercel_wsgi.py", "use": "@vercel/python" }
   ],
   "routes": [
-    { "src": "/static/(.*)", "dest": "/staticfiles/$1" },
-    { "src": "/(.*)", "dest": "vercel_wsgi.py" }
-  ]
+    {
+      "src": "/static/(.*)",
+      "headers": { "cache-control": "public, max-age=31536000, immutable" },
+      "dest": "/staticfiles/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "vercel_wsgi.py"
+    }
+  ],
+  "static": {
+    "staticfiles": "staticfiles"
+  }
 }
