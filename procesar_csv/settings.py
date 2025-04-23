@@ -11,10 +11,14 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+from decouple import config
+import dj_database_url
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -23,15 +27,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-17u&5sxv9d+zxc^368at&p6o+cdj(4^0h&o-*790-wwi-2++=^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    'terceros-dbced8ett-fdgalarzas-projects.vercel.app',
-    'terceros.vercel.app',  # <-- este es el nuevo dominio que hay que permitir
-    
-]
+ALLOWED_HOSTS = ["*"] 
 
 
 # Application definition
@@ -82,10 +80,11 @@ WSGI_APPLICATION = 'procesar_csv.wsgi.app'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,  # Puedes configurar esto para mantener conexiones abiertas por más tiempo
+        ssl_require=True    # Asegúrate de que esté habilitado SSL para conexiones seguras
+    )
 }
 
 
