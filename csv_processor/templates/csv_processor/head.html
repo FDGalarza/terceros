@@ -4,33 +4,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Counters Tools{% endblock %}</title>
+    <title>{% block title %}Accountants tools{% endblock %}</title>
     
     {% load static %}
     <link rel="stylesheet" href="{% static 'styles/main.css' %}">
 </head>
     <body>
-    
+        {% load i18n %}
         <!-- Barra lateral -->
         <div class="sidebar">
+            <h5>{{user.first_name}} {{user.last_name}}</h5>
             <div class="text-center">
-                <h1 class="nav-title">Accounter Tools</h1>
+                <h1 class="nav-title">Accountants tools!</h1>
                 <img src="{% static 'images/logo.jpg' %}" alt="Logo" class="nav-logo">
             </div>
-            <ul class="flex-column">
-                <li class="nav-item">
-                    <a href="{% url 'procesar_csv' %}" class="nav-link {% if request.resolver_match.url_name == 'procesar_csv' %}active{% endif %}">Consolidar Terceros CSV</a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'procesar_excel' %}" class="nav-link {% if request.resolver_match.url_name == 'procesar_excel' %}active{% endif %}">Consolidar Terceros Excel</a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'procesar_proveedores' %}" class="nav-link {% if request.resolver_match.url_name == 'procesar_proveedores' %}active{% endif %}">Proveedores</a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'kanban' %}" class="nav-link {% if request.resolver_match.url_name == 'kanban' %}active{% endif %}">Tareas</a>
-                </li>
-            </ul>
+            {% if user.is_authenticated %}
+                <form action="{% url 'logout' %}" method="post" style="display:inline;" id="endSession">
+                    {% csrf_token %}
+                    <a href="#" class="link" onclick="document.getElementById('endSession').submit(); return false;">
+                        Cerrar Seion
+                    </a>
+                </form>
+            {% endif %}
+            {% if user.is_authenticated %}
+                <ul class="flex-column">
+                    <li class="nav-item">
+                        <a href="{% url 'procesar_csv' %}" class="nav-link {% if request.resolver_match.url_name == 'procesar_csv' %}active{% endif %}">Consolidar Terceros CSV</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'procesar_excel' %}" class="nav-link {% if request.resolver_match.url_name == 'procesar_excel' %}active{% endif %}">Consolidar Terceros Excel</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'procesar_proveedores' %}" class="nav-link {% if request.resolver_match.url_name == 'procesar_proveedores' %}active{% endif %}">Proveedores</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'kanban' %}" class="nav-link {% if request.resolver_match.url_name == 'kanban' %}active{% endif %}">Tareas</a>
+                    </li>
+                </ul>
+                
+            {% endif %}
+           
         </div>
         <!-- Contenido principal -->
         <div class="main-content">

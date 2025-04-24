@@ -105,7 +105,7 @@ window.onload = function() {
         alerts.forEach(function(alert) {
             alert.style.display = 'none'; // Ocultar las alertas
         });
-    }, 5000); // Las alertas desaparecen después de 5 segundos
+    }, 10000); // Las alertas desaparecen después de 5 segundos
 };
 
 let tareaArrastrada = null;

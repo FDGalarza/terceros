@@ -1,5 +1,6 @@
 from django import forms
 from .models import Tarea
+from django.contrib.auth.forms import AuthenticationForm
 
 # Opciones de formato para el archivo CSV (estructuras diferentes)
 FILE_CHOICES = [
@@ -37,5 +38,14 @@ class TareaForm(forms.ModelForm):
         widgets = {
             'fecha': forms.DateInput(attrs={'type': 'date'})  # Usar un widget de tipo 'date' para seleccionar fechas
         }
+
+class CustomLoginForm(AuthenticationForm):
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Usuario'})
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Contraseña'})
+    )
+
 
 

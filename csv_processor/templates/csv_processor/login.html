@@ -1,0 +1,28 @@
+{% extends 'csv_processor/head.html' %}
+
+{% block title %}Iniciar Sesión{% endblock %}
+
+{% block content %}
+    <div class="form-container">
+        <h1>Inicio de Sesión</h1>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.as_p }}
+            </div>
+           
+            <button type="submit">Ingresar</button>
+        </form>
+        {% if user.is_authenticated %}
+            <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="nav-link btn btn-link">Cerrar sesión</button>
+            </form>
+        {% endif %}
+        {% if form.errors %}
+            <p class="alert alert-danger mt-3">Usuario o contraseña incorrectos</p>
+        {% endif %}
+    </div>
+    {% include 'csv_processor/estructura_archivo.html' %}
+{% endblock %}

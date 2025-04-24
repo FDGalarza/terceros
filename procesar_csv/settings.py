@@ -28,7 +28,7 @@ load_dotenv()
 SECRET_KEY = 'django-insecure-17u&5sxv9d+zxc^368at&p6o+cdj(4^0h&o-*790-wwi-2++=^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"] 
 
@@ -137,3 +137,29 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_REDIRECT_URL = '/'         # Adónde ir después de loguearse
+LOGOUT_REDIRECT_URL = '/login/' # Adónde ir después de hacer logout
+LOGIN_URL = '/login/'
+
+# Establecer el idioma predeterminado (en este caso, español)
+LANGUAGE_CODE = 'es'
+
+# Lista de idiomas disponibles (puedes agregar otros idiomas si es necesario)
+LANGUAGES = [
+    ('es', 'Español'),
+    ('en', 'English'),
+    # Agrega más idiomas si es necesario
+]
+
+# Establecer la zona horaria (si es necesario)
+TIME_ZONE = 'America/Mexico_City'  # Cambia según tu ubicación
+
+#Envio de Email
+EMAIL_BACKEND = config('EMAIL_BACKEND')
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')

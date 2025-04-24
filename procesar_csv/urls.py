@@ -16,8 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth_views
+
+
+from csv_processor import views
+from csv_processor.forms import CustomLoginForm
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('login/', auth_views.LoginView.as_view(template_name='csv_processor/login.html', authentication_form=CustomLoginForm), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('procesar_csv/', include('csv_processor.urls')),
+    path('', views.home, name='home'),  # Ruta para la página principal
 ]
+
+
