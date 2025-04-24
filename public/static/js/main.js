@@ -166,3 +166,24 @@ function getCSRFToken() {
         .find(row => row.startsWith(name + '='))?.split('=')[1];
     return cookieValue;
 }
+
+// Función para cambiar el mes desde los botones en el tablero Kanban
+function cambiarMes(direccion) {
+    const currentUrl = new URL(window.location.href);
+    let mes = parseInt(currentUrl.searchParams.get("mes")) || new Date().getMonth() + 1;
+    let anio = parseInt(currentUrl.searchParams.get("anio")) || new Date().getFullYear();
+
+    mes += direccion;
+    if (mes > 12) {
+        mes = 1;
+        anio++;
+    } else if (mes < 1) {
+        mes = 12;
+        anio--;
+    }
+
+    currentUrl.searchParams.set("mes", mes);
+    currentUrl.searchParams.set("anio", anio);
+
+    window.location.href = currentUrl.toString();
+}

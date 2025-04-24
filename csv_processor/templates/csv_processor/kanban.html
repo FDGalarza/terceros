@@ -2,7 +2,12 @@
 {% block title %}Accounter Tools{% endblock %}
 
 {% block content %}
-<h1>Tablero Kanban - {{ hoy }}</h1>
+<h1>Tablero Kanban - {{ hoy|date:"F Y" }}</h1>
+
+<div class="mes-nav">
+    <button class="mes-btn" onclick="cambiarMes(-1)">← Mes anterior</button>
+    <button class="mes-btn" onclick="cambiarMes(1)">Mes siguiente →</button>
+</div>
 
 <div class="kanban-board" data-id="{{ tarea.id }}" style="display: flex; gap: 20px; justify-content: space-between; font-family: Arial, sans-serif;">
     {% for estado, tareas in tareas_por_estado.items %}
@@ -34,10 +39,9 @@
                         padding: 10px;
                         border-radius: 5px;
                         box-shadow: 1px 1px 4px rgba(0,0,0,0.05);">
-                    <strong>{{ tarea.nombre }}</strong><br>
-                    <small>📅 Creada: {{ tarea.fecha }}</small><br>
-                    <small>⏳ Vence: {{ tarea.fecha_vencimiento }}</small><br>
-                    <p style="margin-top: 5px;">{{ tarea.titulo }}</p>
+                    <strong>{{ tarea.titulo }}</strong><br>
+                    <small>⏳ <strong>Vence:</strong> {{ tarea.fecha_vencimiento }}</small><br>
+                    <p style="margin-top: 5px;">{{ tarea.descripcion }}</p>
                 </div>
             {% empty %}
                 <p style="text-align: center; font-style: italic;">No hay tareas</p>

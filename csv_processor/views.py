@@ -1,13 +1,16 @@
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import JsonResponse
+from django.template.loader import render_to_string  # Para usar templates si es necesario
+from django.utils.html import strip_tags  # Para generar una versión de solo texto
+from datetime import datetime, timedelta
+from django.core.mail import send_mail
 import os
 import io
 import pandas as pd
 from django.shortcuts import render, redirect
-from django.contrib import messages
-from .forms import CSVUploadForm , ExcelUploadFrom, TareaForm
-from openpyxl import Workbook
+from django.contrib.auth.decorators import login_required
+from .forms import CSVUploadForm , ExcelUploadFrom
 from openpyxl.styles import PatternFill
 from django.http import HttpResponse
 from datetime import date
@@ -15,15 +18,20 @@ from calendar import monthrange
 from .models import Tarea, User
 
 
+@login_required
+def home(request):
+    return render(request, 'csv_processor/home.html')
+
 def obtener_usuario_predeterminado():
     return User.objects.get(username='Eliana')  # o el username que hayas creado
 
     # en tu vista:
     usuario = request.user if request.user.is_authenticated else obtener_usuario_predeterminado()
 
-
+@login_required
 def procesar_csv(request):
     context = {}
+    context['error'] = ''
     if request.method == "POST":
         form = CSVUploadForm (request.POST, request.FILES)
         if form.is_valid():
@@ -155,10 +163,11 @@ def procesar_csv(request):
                                                                            'Primer nombre del informado', 'Otros nombres del informado',
                                                                            'Razón social informado', 'País de residencia o domicilio'], how='left') 
                      
+                     
                      # Crea el archivo Excel en memoria
                      # Crea el archivo Excel en memoria
                      return crear_archivo_excel_respuesta(df_grouped, output_file_name, file_format)
-
+                     
                  
 
             except Exception as e:
@@ -172,9 +181,10 @@ def procesar_csv(request):
     
     return render(request, 'csv_processor/procesar_csv.html', context)
 
+@login_required
 def procesar_excel(request):
     context = {}
-    
+    context['error'] = ''
     if request.method == "POST":
         form = CSVUploadForm (request.POST, request.FILES)
         if form.is_valid():
@@ -324,11 +334,12 @@ def procesar_excel(request):
     
     return render(request, 'csv_processor/procesar_excel.html', context)
 
+@login_required
 def proveedores(request):
     context = {}  # Definimos context al principio
 
     if request.method == 'POST':
-        print(request)
+        
         form = ExcelUploadFrom(request.POST, request.FILES)
 
         archivo = request.FILES.get('excel_file_proveedor')  # Obtenemos el archivo cargado
@@ -438,23 +449,26 @@ def crear_archivo_excel_respuesta(df, output_file_name, file_sheet):
     return response
 
 #Vista para gestionar tareas
+@login_required
 def tablero_kanban(request):
     try:
         hoy = date.today()
-        primer_dia = hoy.replace(day=1)
-        ultimo_dia = hoy.replace(day=monthrange(hoy.year, hoy.month)[1])
+        anio = int(request.GET.get('anio', hoy.year))
+        mes = int(request.GET.get('mes', hoy.month))
+        
+        primer_dia = date(anio, mes, 1)
+        ultimo_dia = primer_dia.replace(day=monthrange(anio, mes)[1])
 
-        if request.user.is_authenticated:
-            usuario = request.user
-        else:
-            usuario = User.objects.get(username='Eliana')
+        usuario = request.user
 
         tareas_pendientes = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='pendiente', usuario=usuario)
         tareas_en_progreso = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='en_progreso', usuario=usuario)
         tareas_completadas = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='completada', usuario=usuario)
-
+        
         context = {
-            'hoy': hoy,
+            'hoy': primer_dia,
+            'anio': anio,
+            'mes': mes,
             'tareas_por_estado': {
                 'pendiente': tareas_pendientes,
                 'en_progreso': tareas_en_progreso,
@@ -467,28 +481,28 @@ def tablero_kanban(request):
         print("⚠️ Error en vista kanban:", e)
         traceback.print_exc()
         return HttpResponse("Error interno del servidor", status=500)
-
-
+    
+@login_required
 def crear_tarea(request):
     if request.method == 'POST':
-
+        print(request.POST.get)
         nombre = request.POST.get('nombre')
         descripcion = request.POST.get('descripcion')
         fecha = request.POST.get('fecha')
+        fechavence = request.POST.get('fecha_vencimiento')
 
         if nombre and descripcion and fecha:
             try:
                 # Si el usuario no está autenticado, usar un usuario por defecto
                 if request.user.is_authenticated:
                     usuario = request.user
-                else:
-                    # Cambia "admin" por el nombre de tu usuario predeterminado
-                    usuario = User.objects.get(username='Eliana')
+                
 
                 tarea = Tarea(
                     titulo=nombre,
                     descripcion=descripcion,
                     fecha=fecha,
+                    fecha_vencimiento = fechavence,
                     usuario=usuario,
                 )
                 tarea.save()
@@ -503,6 +517,7 @@ def crear_tarea(request):
 
 @csrf_exempt
 def actualizar_estado_tarea(request):
+
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -519,3 +534,80 @@ def actualizar_estado_tarea(request):
             return JsonResponse({'success': False, 'error': str(e)})
 
     return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+#Envia correos con las tareas pendientes o en proceso
+@csrf_exempt
+def enviar_tareas(request):
+    
+    usuarios = User.objects.all()
+    
+    # Obtener la fecha actual
+    fecha_actual = datetime.now().date()
+    # Definir el rango de "próxima vencimiento" (por ejemplo, 15 días)
+    rango_vencimiento = fecha_actual + timedelta(days=15)
+    
+    for usuario in usuarios:
+        tareas = Tarea.objects.filter(
+            estado__in=['pendiente', 'en_progreso'],
+            usuario=usuario
+        ).order_by('fecha_vencimiento')  # Ordenar por fecha de vencimiento ascendente
+        
+        if tareas.exists():
+            # Construir la tabla HTML con las tareas
+            tabla_html = """
+            <table border="1" cellpadding="10" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Descripción</th>
+                        <th>Fecha de Creación</th>
+                        <th>Fecha de Vencimiento</th>
+                    </tr>
+                </thead>
+                <tbody>
+            """
+            
+            for t in tareas:
+                fila_color = 'background-color: #FFCCCB;' if t.fecha_vencimiento and t.fecha_vencimiento <= rango_vencimiento else ''
+                tabla_html += f"""
+                <tr style="{fila_color}">
+                    <td>{t.titulo}</td>
+                    <td>{t.descripcion}</td>
+                    <td>{t.fecha}</td>
+                    <td>{t.fecha_vencimiento if t.fecha_vencimiento else 'No tiene'}</td>
+                </tr>
+                """
+            
+            tabla_html += """
+                </tbody>
+            </table>
+            """
+
+            # Footer del correo
+            footer_html = """
+            <hr>
+            <p style="font-size: 12px; color: gray;">
+                Este correo fue enviado automáticamente por la plataforma de productividad contable Accountants Tools.<br>
+                Si tienes preguntas, contáctanos a <a href="mailto:fabricio.galarza@outlook.com">fabricio.galarza@outlook.com.com</a>.
+            </p>
+            """
+
+            # Cuerpo completo del correo
+            mensaje_html = f"""
+            <p>Hola {usuario.first_name},</p>
+            <p>Estas son las tareas que tienes pendientes o en progreso:</p>
+            {tabla_html}
+            <p>¡Saludos!</p>
+            {footer_html}
+            """
+
+            send_mail(
+                'TIENES TAREAS SIN FINALIZAR',
+                strip_tags(mensaje_html),  # Versión de solo texto
+                'fabricio.galarzadev@gmail.com',
+                [usuario.email],
+                fail_silently=False,
+                html_message=mensaje_html
+            )
+
+    return JsonResponse({'status': 'correos enviados'})

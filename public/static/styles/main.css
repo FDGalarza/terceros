@@ -35,7 +35,7 @@ body, html {
     max-width: 500px; /* Limitar el ancho máximo si lo deseas */
     text-align: center;
     border: 1px solid #e0e0e0;
-    margin-left: 120px;
+   
     display: flex;
     flex-direction: column; /* Asegura que los elementos dentro se apilen verticalmente */
     align-items: center; /* Centra los elementos horizontalmente */
@@ -62,6 +62,15 @@ h3 {
     font-weight: normal;
     color: #34495e;
     margin-bottom: 20px;
+    text-align: center; /* Centrado horizontal */
+}
+
+h5 {
+    font-size: 1.5em;
+    font-weight: normal;
+    color: #fff;
+    margin-bottom: 20px;
+    margin-top: 5px;
     text-align: center; /* Centrado horizontal */
 }
 
@@ -318,14 +327,28 @@ nav {
     background-color: #2980b9;
     padding-top: 20px;
     z-index: 1000;
+    overflow-y: auto; /* scroll vertical si es necesario */
 }
 
+.link {
+    text-decoration: none;     /* Quita el subrayado */
+    color: #ffffff;            /* Color del texto */
+    display: inline-block;     /* Permite usar padding correctamente */
+    transition: background-color 0.3s ease; /* Animación suave */
+    margin-left: 65px;
+  }
+  
+  .link:hover {
+    background-color: #0056b3; /* Fondo más oscuro al pasar el mouse */
+  }
+  
 /* Cuando la pantalla es pequeña, ajustamos el diseño */
 @media (max-width: 768px) {
     .sidebar {
         width: 100%;
         height: auto;
         position: relative;
+        overflow-y: auto;
     }
 }
 
@@ -417,3 +440,27 @@ nav {
     box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2); /* Aumentar la sombra */
   }
 
+  .mes-nav {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.mes-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.mes-btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+}
