@@ -453,18 +453,22 @@ def crear_archivo_excel_respuesta(df, output_file_name, file_sheet):
 def tablero_kanban(request):
     try:
         hoy = date.today()
-        primer_dia = hoy.replace(day=1)
-        ultimo_dia = hoy.replace(day=monthrange(hoy.year, hoy.month)[1])
-
-        if request.user.is_authenticated:
-            usuario = request.user
+        anio = int(request.GET.get('anio', hoy.year))
+        mes = int(request.GET.get('mes', hoy.month))
         
+        primer_dia = date(anio, mes, 1)
+        ultimo_dia = primer_dia.replace(day=monthrange(anio, mes)[1])
+
+        usuario = request.user
+
         tareas_pendientes = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='pendiente', usuario=usuario)
         tareas_en_progreso = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='en_progreso', usuario=usuario)
         tareas_completadas = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='completada', usuario=usuario)
-
+        
         context = {
-            'hoy': hoy,
+            'hoy': primer_dia,
+            'anio': anio,
+            'mes': mes,
             'tareas_por_estado': {
                 'pendiente': tareas_pendientes,
                 'en_progreso': tareas_en_progreso,
@@ -477,14 +481,15 @@ def tablero_kanban(request):
         print("⚠️ Error en vista kanban:", e)
         traceback.print_exc()
         return HttpResponse("Error interno del servidor", status=500)
-
+    
 @login_required
 def crear_tarea(request):
     if request.method == 'POST':
-
+        print(request.POST.get)
         nombre = request.POST.get('nombre')
         descripcion = request.POST.get('descripcion')
         fecha = request.POST.get('fecha')
+        fechavence = request.POST.get('fecha_vencimiento')
 
         if nombre and descripcion and fecha:
             try:
@@ -497,6 +502,7 @@ def crear_tarea(request):
                     titulo=nombre,
                     descripcion=descripcion,
                     fecha=fecha,
+                    fecha_vencimiento = fechavence,
                     usuario=usuario,
                 )
                 tarea.save()
@@ -532,21 +538,22 @@ def actualizar_estado_tarea(request):
 #Envia correos con las tareas pendientes o en proceso
 @csrf_exempt
 def enviar_tareas(request):
-    print('hola')
+    
     usuarios = User.objects.all()
     
     # Obtener la fecha actual
     fecha_actual = datetime.now().date()
-    # Definir el rango de "próxima vencimiento" (por ejemplo, 3 días)
+    # Definir el rango de "próxima vencimiento" (por ejemplo, 15 días)
     rango_vencimiento = fecha_actual + timedelta(days=15)
     
     for usuario in usuarios:
-
-        tareas = Tarea.objects.filter(estado__in=['pendiente', 'en_progreso'], usuario=usuario) \
-            .order_by('fecha_vencimiento')  # Ordenar por fecha de vencimiento (ascendente)
+        tareas = Tarea.objects.filter(
+            estado__in=['pendiente', 'en_progreso'],
+            usuario=usuario
+        ).order_by('fecha_vencimiento')  # Ordenar por fecha de vencimiento ascendente
         
         if tareas.exists():
-            # Construir el cuerpo del correo con una tabla HTML
+            # Construir la tabla HTML con las tareas
             tabla_html = """
             <table border="1" cellpadding="10" cellspacing="0" style="border-collapse: collapse; width: 100%; margin-top: 20px;">
                 <thead>
@@ -560,14 +567,8 @@ def enviar_tareas(request):
                 <tbody>
             """
             
-            # Añadir las filas con las tareas
             for t in tareas:
-                # Determinar si la tarea tiene una fecha de vencimiento próxima
-                if t.fecha_vencimiento and t.fecha_vencimiento <= rango_vencimiento:
-                    fila_color = 'background-color: #FFCCCB;'  # Color para las tareas próximas
-                else:
-                    fila_color = ''  # Sin color para las tareas normales
-                
+                fila_color = 'background-color: #FFCCCB;' if t.fecha_vencimiento and t.fecha_vencimiento <= rango_vencimiento else ''
                 tabla_html += f"""
                 <tr style="{fila_color}">
                     <td>{t.titulo}</td>
@@ -582,21 +583,31 @@ def enviar_tareas(request):
             </table>
             """
 
-            # Cuerpo del correo en formato HTML
+            # Footer del correo
+            footer_html = """
+            <hr>
+            <p style="font-size: 12px; color: gray;">
+                Este correo fue enviado automáticamente por la plataforma de productividad contable Accountants Tools.<br>
+                Si tienes preguntas, contáctanos a <a href="mailto:fabricio.galarza@outlook.com">fabricio.galarza@outlook.com.com</a>.
+            </p>
+            """
+
+            # Cuerpo completo del correo
             mensaje_html = f"""
             <p>Hola {usuario.first_name},</p>
             <p>Estas son las tareas que tienes pendientes o en progreso:</p>
             {tabla_html}
             <p>¡Saludos!</p>
+            {footer_html}
             """
 
-            # Enviar el correo en formato HTML
             send_mail(
                 'TIENES TAREAS SIN FINALIZAR',
-                strip_tags(mensaje_html),  # Esto genera una versión de solo texto
+                strip_tags(mensaje_html),  # Versión de solo texto
                 'fabricio.galarzadev@gmail.com',
                 [usuario.email],
                 fail_silently=False,
-                html_message=mensaje_html  # Correo en formato HTML
+                html_message=mensaje_html
             )
+
     return JsonResponse({'status': 'correos enviados'})
