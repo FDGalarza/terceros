@@ -211,10 +211,9 @@ nav {
 .kanban-column {
     float: left;
     width: 30%;
-    margin: 1%;
     padding: 1%;
     border: 1px solid #ccc;
-    min-height: 50px;
+    min-height: 300px;
 }
 .tarea {
     background-color: #f4f4f4;
