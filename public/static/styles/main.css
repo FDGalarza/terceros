@@ -1,6 +1,6 @@
     /* Resetear algunos estilos básicos */
 * {
-    margin: 15;
+    margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
@@ -209,12 +209,14 @@ nav {
 }
 
 .kanban-column {
-    float: left;
-    width: 30%;
-    margin: 1%;
-    padding: 1%;
-    border: 1px solid #ccc;
-    min-height: 300px;
+    flex: 1 1 30%; /* 1: crece, 1: se encoge, 30%: base */
+  min-width: 250px; /* Ancho mínimo para evitar que las columnas se colapsen demasiado */
+  box-sizing: border-box;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  border: 1px solid #ccc;
+  min-height: 300px;
 }
 .tarea {
     background-color: #f4f4f4;
@@ -246,12 +248,12 @@ nav {
 
 .sidebar ul li {
     margin: 10px;
-    padding: 10px;
+    padding: 0;
     background-color: #1f6fa4;
     border-radius: 10px;
     transition: background-color 0.3s ease, color 0.3s ease;
     width: 210px; /* Ancho fijo de 200px */
-    height: 60px; /* Altura fija de 50px */
+    height: 30px; /* Altura fija de 50px */
 }
 
 .sidebar ul li a {
@@ -260,7 +262,7 @@ nav {
     font-size: 12px;
     font-weight: 500;
     padding: 10px 25px 15px 20px;
-    border-radius: 30px;
+    border-radius: 10px;
     display: block;
 }
 
@@ -272,7 +274,7 @@ nav {
 
 /* Estilo cuando el enlace está activo (en la ruta actual) */
 .active {
-    background-color: #33356d; /* Color cuando está activo */
+    background-color: #3447b1; /* Color cuando está activo */
     color: white; /* Color del texto cuando está activo */
 }
 
@@ -308,17 +310,8 @@ nav {
 
 
 
-/* Estilo para los campos de tipo <select> y otros campos en pantallas pequeñas */
-@media (max-width: 768px) {
-    .form-control {
-        font-size: 14px;
-    }
-}
-
-
-
- /* Barra lateral */
- .sidebar {
+ /* En pantallas grandes: sidebar fija y a la izquierda */
+.sidebar {
     height: 100%;
     width: 250px;
     position: fixed;
@@ -327,12 +320,96 @@ nav {
     background-color: #2980b9;
     padding-top: 20px;
     z-index: 1000;
-    overflow-y: auto; /* scroll vertical si es necesario */
+    overflow-y: auto;
 }
+
+/* ✅ Ajustes para móviles */
+@media (max-width: 768px) {
+    .sidebar {
+        position: relative !important;
+        width: 100% !important;
+        height: auto !important;
+        text-align: center;
+        padding-bottom: 20px;
+        overflow: visible !important;
+        min-height: auto;
+        z-index: 999;
+    }
+
+    .sidebar .text-center {
+        display: block;
+        width: 100%;
+        padding: 10px 0;
+    }
+
+    .nav-logo {
+        display: block !important;
+        margin: 15px auto !important;
+        max-width: 100px !important;
+        height: auto !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    .nav-title {
+        margin: 10px 0;
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+
+    .sidebar ul {
+        align-items: center;
+        flex-direction: row; /* Mostrar los ítems horizontalmente */
+            flex-wrap: wrap;
+            justify-content: center;
+        
+    }
+
+    .sidebar ul li {
+        width: auto;
+        height: auto;
+    }
+
+    .link {
+        display: inline-block;
+        margin: 10px auto;
+        font-size: 10px;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        padding: 20px;
+    }
+
+    .form-container {
+        width: 100%;
+        padding: 20px;
+    }
+
+    .kanban-column {
+        flex: 1 1 100%; /* En pantallas pequeñas, cada columna ocupa el 100% del ancho */
+      }
+
+      .form-row {
+        flex-direction: column; /* Apilar los campos en lugar de mostrarlos en fila */
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-control {
+        font-size: 14px; /* Reducir ligeramente el tamaño de fuente si es necesario */
+        padding: 10px;  /* Reducir padding en pantallas pequeñas */
+    }
+}
+
+
+
 
 .link {
     text-decoration: none;     /* Quita el subrayado */
-    color: #ffffff;            /* Color del texto */
+    color: #0c0c0c;            /* Color del texto */
     display: inline-block;     /* Permite usar padding correctamente */
     transition: background-color 0.3s ease; /* Animación suave */
     margin-left: 65px;
@@ -342,27 +419,30 @@ nav {
     background-color: #0056b3; /* Fondo más oscuro al pasar el mouse */
   }
   
-/* Cuando la pantalla es pequeña, ajustamos el diseño */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        overflow-y: auto;
-    }
-}
 
 /* Estilo para los contenidos que deben ajustarse a la derecha de la barra lateral */
 .main-content {
-    margin-left: 260px;
+    margin-left: 260px; /* Espacio para sidebar en desktop */
     padding: 20px;
 }
 
-@media (max-width: 768px) {
-    .main-content {
-        margin-left: 0;
+@media (max-width: 480px) {
+    .form-group label {
+        font-size: 14px;
+    }
+
+    .form-control,
+    .form-group input[type="file"],
+    button[type="submit"] {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    h1, h3, h5 {
+        font-size: 1rem;
     }
 }
+
     
 
     /* Estilo para el modal */
@@ -385,6 +465,8 @@ nav {
     .modal-body {
         background-color: #f9f9f9; /* Fondo gris claro para el cuerpo */
         padding: 30px; /* Espaciado dentro del cuerpo del modal */
+        max-height: none !important;
+        overflow-y: visible !important;
     }
 
     /* Botón de cierre */
@@ -393,17 +475,7 @@ nav {
         font-size: 30px; /* Tamaño más grande para el ícono de cierre */
         font-weight: bold; /* Negrita para el ícono de cierre */
     }
-
-    /* Estilos adicionales para asegurar que el modal se vea bien en dispositivos pequeños */
-    @media (max-width: 768px) {
-        .modal-dialog {
-            max-width: 90%; /* Hacer que el modal ocupe el 90% del ancho en pantallas pequeñas */
-        }
-
-        .modal-header h5 {
-            font-size: 1.25rem; /* Reducir el tamaño del texto en pantallas pequeñas */
-        }
-    }
+    
 
     .hidden {
         display: none;
@@ -462,5 +534,80 @@ nav {
 
 .mes-btn:hover {
     background-color: #2980b9;
+    transform: translateY(-2px);
+}
+
+.kanban-board {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+  }
+
+  .kanban-help {
+    background-color: #e9f7ef;
+    border-left: 5px solid #2ecc71;
+    padding: 15px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #2d6a4f;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.btn-crear-tarea {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    padding: 12px 25px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 30px;
+    text-decoration: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-top: 30px;
+}
+
+.btn-crear-tarea:hover {
+    background-color: #1059a8;
+    transform: translateY(-2px);
+}
+
+.modal-container-width {
+    width: 100%;
+    max-width: 1140px;
+    margin: auto;
+  }
+  .kanban-card {
+    cursor: pointer;
+  }
+
+  input[type="date"] {
+    width: 100%; /* Esto garantiza que el campo de fecha ocupe el 100% de su contenedor */
+    padding: 12px; /* Igual que los otros campos */
+    border: 1px solid #ccc; /* Asegurando que tenga el mismo borde que otros inputs */
+    border-radius: 8px; /* Bordes redondeados consistentes */
+    font-size: 16px; /* Tamaño de fuente consistente con otros campos */
+    background-color: #f5f6fa; /* Consistente con el fondo de otros campos */
+}
+
+#downloadBtn {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    padding: 12px 25px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 30px;
+    text-decoration: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-top: 30px;
+}
+
+/* Estilo para el botón cuando pasa el mouse por encima */
+#downloadBtn:hover {
+    background-color: #1059a8;
     transform: translateY(-2px);
 }
