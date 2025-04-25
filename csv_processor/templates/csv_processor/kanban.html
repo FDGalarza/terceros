@@ -2,13 +2,15 @@
 {% block title %}Accounter Tools{% endblock %}
 
 {% block content %}
-<h1>Tablero Kanban - {{ hoy|date:"F Y" }}</h1>
+<h1>Tareas y Obligaciones - {{ hoy|date:"F Y" }}</h1>
 
 <div class="mes-nav">
     <button class="mes-btn" onclick="cambiarMes(-1)">← Mes anterior</button>
     <button class="mes-btn" onclick="cambiarMes(1)">Mes siguiente →</button>
 </div>
-
+<div class="kanban-help">
+    <p>😊 ¿Querés mover una tarjeta? Solo arrastrala a la columna que le corresponde. ¡Así de fácil!</p>
+</div>
 <div class="kanban-board" data-id="{{ tarea.id }}" style="display: flex; gap: 20px; justify-content: space-between; font-family: Arial, sans-serif;">
     {% for estado, tareas in tareas_por_estado.items %}
         <div class="kanban-column"
@@ -24,34 +26,58 @@
             </h2>
 
             {% for tarea in tareas %}
-                <div class="kanban-card"
-                    draggable="true"
-                    data-id="{{ tarea.id }}"
-                    ondragstart="iniciarArrastre(event)"
-                    style="background-color: 
-                        {% if estado == 'pendiente' %}#fff3cd
-                        {% elif estado == 'en_progreso' %}#d1ecf1
-                        {% elif estado == 'completada' %}#d4edda
-                        {% else %}#e2e3e5
-                        {% endif %}; 
-                        border: 1px solid #ccc;
-                        margin-bottom: 10px;
-                        padding: 10px;
-                        border-radius: 5px;
-                        box-shadow: 1px 1px 4px rgba(0,0,0,0.05);">
-                    <strong>{{ tarea.titulo }}</strong><br>
-                    <small>⏳ <strong>Vence:</strong> {{ tarea.fecha_vencimiento }}</small><br>
-                    <p style="margin-top: 5px;">{{ tarea.descripcion }}</p>
-                </div>
+            <div class="kanban-card"
+                draggable="true"
+                data-id="{{ tarea.id }}"
+                            data-bs-placement="top"
+                            ondragstart="iniciarArrastre(event)"
+                            style="background-color: 
+                                {% if estado == 'pendiente' %}#fff3cd
+                                {% elif estado == 'en_progreso' %}#d1ecf1
+                                {% elif estado == 'completada' %}#d4edda
+                                {% else %}#e2e3e5
+                                {% endif %}; 
+                                border: 1px solid #ccc;
+                                margin-bottom: 10px;
+                                padding: 10px;
+                                border-radius: 5px;
+                                box-shadow: 1px 1px 4px rgba(0,0,0,0.05);">
+                <strong>{{ tarea.titulo }}</strong><br>
+                <small>⏳ <strong>Vence:</strong> {{ tarea.fecha_vencimiento }}</small><br>
+                <p style="margin-top: 5px;">{{ tarea.descripcion }}</p>
+
+                <!-- Botón de eliminar con ícono y tooltip -->
+                <button type="button" class="btn btn-outline-danger btn-sm"  
+                        onclick="eliminarTarea({{ tarea.id }})"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="Eliminar tarea">
+                    <i class="bi bi-trash"></i> <!-- Ícono de papelera -->
+                </button>
+
+                <!--Editar tarea-->
+                <button type="button" 
+                        class="btn btn-outline-warning btn-sm" 
+                        onclick="editarTarea({{ tarea.id }}, '{{ tarea.titulo }}', '{{ tarea.descripcion }}', '{{ tarea.fecha_vencimiento|date:"Y-m-d" }}')"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="Editar tarea">
+                    <i class="bi bi-pencil"></i> <!-- Ícono de lápiz -->
+                </button>
+             </div>
+        
             {% empty %}
                 <p style="text-align: center; font-style: italic;">No hay tareas</p>
             {% endfor %}
 
         </div>
     {% endfor %}
+    {% include 'csv_processor/editar_tarea.html' %}
 </div>
 <div id="url-actualizar-estado" data-url="{% url 'actualizar_estado_tarea' %}"></div>
+<div id="url-editar-tarea" data-url="{% url 'editar_tarea' 0 %}"></div>
+<div id="url-eliminar-tarea" data-url="{% url 'eliminar_tarea' 0 %}"></div>
 
-<a href="{% url 'crear_tarea' %}">Crear una nueva tarea</a>
+<a href="{% url 'crear_tarea' %}" class="btn-crear-tarea">➕ Crear nueva tarea</a>
 
 {% endblock %}

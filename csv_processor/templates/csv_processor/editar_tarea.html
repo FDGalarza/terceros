@@ -1,0 +1,28 @@
+<!-- Modal para editar tarea -->
+<div class="modal fade" id="editarTareaModal" tabindex="-1" aria-labelledby="editarTareaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarTareaModalLabel">Editar Tarea</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarTarea">
+                    <div class="mb-3">
+                        <label for="tareaTitulo" class="form-label">Título</label>
+                        <input type="text" class="form-control" id="tareaTitulo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tareaDescripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="tareaDescripcion" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tareaFecha" class="form-label">Fecha de Vencimiento</label>
+                        <input type="date" class="form-control" id="tareaFecha" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
