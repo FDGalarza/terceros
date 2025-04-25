@@ -87,9 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
         estructuraDialog.classList.add("hidden");
     }
 
-    document.getElementById("estructuraDialog").classList.add("hidden");
     if (formatoElement) {
-        console.log('antes de formato.');
         // Agregar el listener para detectar el cambio de selección
         formatoElement.addEventListener("change", mostrarEstructura);
     
@@ -137,7 +135,7 @@ function moverTarea(event, targetColumn) {
                 'X-CSRFToken': getCSRFToken() // Obtener el token CSRF
             },
             body: JSON.stringify({
-                tarea_id: tareaId,  // Asegúrate de que el campo se llame "tarea_id"
+                tarea_id: tareaId,
                 estado: nuevoEstado
             })
         })
@@ -186,4 +184,172 @@ function cambiarMes(direccion) {
     currentUrl.searchParams.set("anio", anio);
 
     window.location.href = currentUrl.toString();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.kanban-column').forEach(columna => {
+        new Sortable(columna, {
+            group: 'kanban',
+            animation: 150,
+            onEnd: function (evt) {
+                const tareaId = evt.item.dataset.id;
+                const nuevoEstado = evt.to.dataset.estado;
+
+                const urlActualizarEstado = document.getElementById('url-actualizar-estado').dataset.url;
+
+                fetch(urlActualizarEstado, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
+                    },
+                    body: JSON.stringify({
+                        tarea_id: tareaId,
+                        estado: nuevoEstado
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert("Error al actualizar la tarea.");
+                    }else{
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                });
+            }
+        });
+    });
+});
+
+// Función que se activa al hacer clic en una tarea
+function editarTarea(id, titulo, descripcion, fecha) {
+   
+    // Llenar los datos del modal con los datos de la tarea
+    document.getElementById('tareaTitulo').value = titulo;
+    document.getElementById('tareaDescripcion').value = descripcion;
+    document.getElementById('tareaFecha').value = formatearFecha(fecha);
+
+    // Agregar el ID de la tarea al formulario (para poder identificarla al guardar)
+    const form = document.getElementById('formEditarTarea');
+    form.setAttribute('data-id', id);
+
+    // Mostrar el modal
+    $('#editarTareaModal').modal('show');
+}
+
+// Función para guardar los cambios
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('formEditarTarea');
+  
+    // Verificamos si el formulario existe antes de agregar el listener
+    if (form) {
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+  
+        const tareaId = form.getAttribute('data-id');
+        const titulo = document.getElementById('tareaTitulo').value.trim();
+        const descripcion = document.getElementById('tareaDescripcion').value.trim();
+        const fecha = document.getElementById('tareaFecha').value;
+  
+        if (!titulo || !descripcion || !fecha) {
+          alert("Por favor completá todos los campos.");
+          return;
+        }
+  
+        
+        const urlBase = document.getElementById('url-editar-tarea').dataset.url;
+        const url = urlBase.replace(/0\/?$/, `${tareaId}/`);
+  
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+          },
+          body: JSON.stringify({
+            titulo: titulo,
+            descripcion: descripcion,
+            fecha: fecha
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert("Hubo un error al guardar la tarea.");
+          }
+        })
+        .catch(error => console.error("Error:", error));
+  
+        // Cerrar el modal (si estás usando Bootstrap 5 sin jQuery)
+        const modal = bootstrap.Modal.getInstance(document.getElementById('editarTareaModal'));
+        if (modal) modal.hide();
+      });
+    }
+  });
+
+
+// Función para formatear la fecha en YYYY-MM-DD
+function formatearFecha(fecha) {
+    const dateObj = new Date(fecha);
+    const anio = dateObj.getFullYear();
+    const mes = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const dia = String(dateObj.getDate()).padStart(2, '0');
+    return `${anio}-${mes}-${dia}`;
+}
+//habilidar tooltip
+document.addEventListener('DOMContentLoaded', function () {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+  
+function eliminarTarea(tareaId){
+    // Confirmación de eliminación
+    if (confirm('¿Estás seguro que quieres eliminar esta tarea?')) {
+        // Enviar la solicitud para eliminar la tarea
+
+        const urlBase = document.getElementById('url-eliminar-tarea').dataset.url;
+        const url = urlBase.replace(/0\/?$/, `${tareaId}/`);
+
+        fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken() 
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Actualizar la interfaz o eliminar la tarea del DOM
+                alert('Tarea eliminada correctamente');
+                location.reload();
+            
+            } else {
+                alert('Hubo un error al eliminar la tarea');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error en la eliminación de la tarea');
+        });
+    }
+}
+
+//descargar formatos de como archivos de excel
+function downloadTableAsXLSX() {
+    // Obtiene la tabla
+    var table = document.getElementById("estructura_tabla");
+
+    // Convierte la tabla HTML a una hoja de Excel
+    var wb = XLSX.utils.table_to_book(table, { sheet: "Hoja 1" });
+
+    // Crea y descarga el archivo XLSX
+    XLSX.writeFile(wb, "tabla.xlsx");
 }

@@ -8,9 +8,9 @@ from django.core.mail import send_mail
 import os
 import io
 import pandas as pd
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
-from .forms import CSVUploadForm , ExcelUploadFrom
+from .forms import CSVUploadForm , ExcelUploadFrom, TareaForm
 from openpyxl.styles import PatternFill
 from django.http import HttpResponse
 from datetime import date
@@ -485,7 +485,7 @@ def tablero_kanban(request):
 @login_required
 def crear_tarea(request):
     if request.method == 'POST':
-        print(request.POST.get)
+        
         nombre = request.POST.get('nombre')
         descripcion = request.POST.get('descripcion')
         fecha = request.POST.get('fecha')
@@ -534,6 +534,43 @@ def actualizar_estado_tarea(request):
             return JsonResponse({'success': False, 'error': str(e)})
 
     return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+@login_required
+@csrf_exempt  # ⚠️ Temporal, mientras implementás CSRF bien con fetch
+def editar_tarea(request, tarea_id):
+    tarea = get_object_or_404(Tarea, id=tarea_id)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            tarea.titulo = data.get('titulo')
+            tarea.descripcion = data.get('descripcion')
+            tarea.fecha_vencimiento = data.get('fecha')
+            tarea.save()
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+@login_required
+@csrf_exempt
+def eliminar_tarea(request, tarea_id):
+    print('id Tarea')
+    print(tarea_id)
+    try:
+        if request.method == "DELETE":
+            # Obtener la tarea que queremos eliminar
+            tarea = get_object_or_404(Tarea, id=tarea_id)
+            # Eliminar la tarea de la base de datos
+            tarea.delete()
+        
+            return JsonResponse({'success': True})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 #Envia correos con las tareas pendientes o en proceso
 @csrf_exempt

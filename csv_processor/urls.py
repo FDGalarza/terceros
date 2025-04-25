@@ -12,6 +12,8 @@ urlpatterns = [
     path('kanban/', views.tablero_kanban, name='kanban'),
     path('actualizar_estado_tarea/', views.actualizar_estado_tarea, name='actualizar_estado_tarea'),
     path('enviar-tareas/', views.enviar_tareas),
+    path('editar_tarea/<int:tarea_id>/', views.editar_tarea, name='editar_tarea'),
+    path('procesar_csv/eliminar_tarea/<int:tarea_id>/', views.eliminar_tarea, name='eliminar_tarea'),
     
 
 ]
