@@ -79,14 +79,23 @@ WSGI_APPLICATION = 'procesar_csv.wsgi.app'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,  # Puedes configurar esto para mantener conexiones abiertas por más tiempo
-        ssl_require=True    # Asegúrate de que esté habilitado SSL para conexiones seguras
-    )
-}
+DJANGO_ENV = config('DJANGO_ENV', default='development')
 
+if DJANGO_ENV == 'production':
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL'),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:  # Desarrollo con SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

@@ -14,6 +14,9 @@ urlpatterns = [
     path('enviar-tareas/', views.enviar_tareas),
     path('editar_tarea/<int:tarea_id>/', views.editar_tarea, name='editar_tarea'),
     path('procesar_csv/eliminar_tarea/<int:tarea_id>/', views.eliminar_tarea, name='eliminar_tarea'),
+    path('tareas/historial/', views.historial_tareas_completadas, name='historial_tareas'),
+    path('tareas/<int:tarea_id>/cambiar_estado/', views.cambiar_estado_tarea, name='cambiar_estado_tarea'),
+
     
 
 ]

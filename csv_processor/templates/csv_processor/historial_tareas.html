@@ -1,0 +1,73 @@
+
+{% extends 'csv_processor/head.html' %}
+{% block title %}Historial de Tareas Completadas{% endblock %}
+
+{% block content %}
+<h1>📜 Historial de Tareas Completadas</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Título</th>
+            <th>Descripción</th>
+            <th>Fecha</th>
+            <th>Vencimiento</th>
+            <th>Completada en</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tarea in page_obj  %}
+        <tr>
+            <td>{{ tarea.titulo }}</td>
+            <td>{{ tarea.descripcion }}</td>
+            <td>{{ tarea.fecha }}</td>
+            <td>{{ tarea.fecha_vencimiento }}</td>
+            <td>{{ tarea.fecha_completado|date:"d/m/Y H:i" }}</td>
+            <td class="historial">
+                <!-- Botón para cambiar estado a Pendiente -->
+                <form method="post" action="{% url 'cambiar_estado_tarea' tarea.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="estado" value="pendiente">
+                    <button type="submit" class="btn btn-outline-primary btn-sm custom-btn" title="Marcar como pendiente">
+                        ↩ Pendiente
+                    </button>
+                </form>
+
+                <!-- Botón para cambiar estado a En Progreso -->
+                <form method="post" action="{% url 'cambiar_estado_tarea' tarea.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="estado" value="en_progreso">
+                    <button type="submit" class="btn btn-outline-warning btn-sm custom-btn" title="Marcar como en progreso">
+                        🔄 En progreso
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" style="text-align: center;">No hay tareas completadas aún.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">« primera</a>
+            <a href="?page={{ page_obj.previous_page_number }}">‹ anterior</a>
+        {% endif %}
+
+        <span class="current">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">siguiente ›</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">última »</a>
+        {% endif %}
+    </span>
+</div>
+
+<a href="{% url 'kanban' %}" class="btn btn-secondary">⬅ Volver al Kanban</a>
+{% endblock %}

@@ -233,7 +233,7 @@ nav {
     width: 150px; /* Ajusta el tamaño del logo según necesites */
     height: auto;
     margin-bottom: 10px; /* Espacio entre el logo y el título */
-    margin-left: 40px;
+    margin-left: 0px;
     border-radius: 50%;
 }
 
@@ -374,6 +374,7 @@ nav {
         display: inline-block;
         margin: 10px auto;
         font-size: 10px;
+        margin-top: 20px;
     }
 
     .main-content {
@@ -413,6 +414,7 @@ nav {
     display: inline-block;     /* Permite usar padding correctamente */
     transition: background-color 0.3s ease; /* Animación suave */
     margin-left: 65px;
+    margin-top: 30px;
   }
   
   .link:hover {
@@ -610,4 +612,28 @@ nav {
 #downloadBtn:hover {
     background-color: #1059a8;
     transform: translateY(-2px);
+}
+
+/* CSS personalizado para hacer los botones más pequeños */
+/* Selecciona los botones solo dentro de la tabla con la clase .historial */
+.historial .custom-btn {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    height: 24px;
+    line-height: 1.2;
+    border-radius: 12px;
+    margin-right: 5px;
+    font-weight: normal;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+}
+
+.historial .custom-btn:hover {
+    background-color: #348ae0;
+    cursor: pointer;
+}
+
+.historial .custom-btn:active {
+    transform: scale(0.9);
 }

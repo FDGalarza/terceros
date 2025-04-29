@@ -23,12 +23,7 @@
                 <img src="{% static 'images/logo.jpg' %}" alt="Logo" class="nav-logo">
             </div>
             {% if user.is_authenticated %}
-                <div style="margin: 10px auto;">
-                    <form action="{% url 'logout' %}" method="post" id="endSession">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-custom">Cerrar Sesión</button>
-                    </form>
-                </div>
+                
             
                 <ul class="flex-column">
                     <li class="nav-item">
@@ -52,6 +47,13 @@
                         </a>
                     </li>
                 </ul>
+
+                <div style="margin: 10px auto;">
+                    <form action="{% url 'logout' %}" method="post" id="endSession">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-custom">Cerrar Sesión</button>
+                    </form>
+                </div>
             {% endif %}
            
         </div>
@@ -65,6 +67,7 @@
                 
             </main>
         </div>
+        
         <!-- Incluir jQuery (asegúrate de que esta línea está antes de cualquier script que use jQuery) -->
         <!-- Agregar jQuery -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
