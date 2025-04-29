@@ -611,3 +611,27 @@ nav {
     background-color: #1059a8;
     transform: translateY(-2px);
 }
+
+/* CSS personalizado para hacer los botones más pequeños */
+/* Selecciona los botones solo dentro de la tabla con la clase .historial */
+.historial .custom-btn {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    height: 24px;
+    line-height: 1.2;
+    border-radius: 12px;
+    margin-right: 5px;
+    font-weight: normal;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+}
+
+.historial .custom-btn:hover {
+    background-color: #348ae0;
+    cursor: pointer;
+}
+
+.historial .custom-btn:active {
+    transform: scale(0.9);
+}

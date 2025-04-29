@@ -51,7 +51,7 @@
                         onclick="eliminarTarea({{ tarea.id }})"
                         data-bs-toggle="tooltip"
                         data-bs-placement="top"
-                        title="Eliminar tarea">
+                        title="Eliminar tarea" data-id="{{ tarea.id }}">
                     <i class="bi bi-trash"></i> <!-- Ícono de papelera -->
                 </button>
 
@@ -79,5 +79,8 @@
 <div id="url-eliminar-tarea" data-url="{% url 'eliminar_tarea' 0 %}"></div>
 
 <a href="{% url 'crear_tarea' %}" class="btn-crear-tarea">➕ Crear nueva tarea</a>
+<a href="{% url 'historial_tareas' %}" class="btn btn-outline-secondary" style="margin-top: 10px;">
+    📋 Ver historial de tareas completadas
+</a>
 
 {% endblock %}

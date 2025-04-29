@@ -1,21 +1,25 @@
-from django.views.decorators.csrf import csrf_exempt
+from   django.views.decorators.csrf   import csrf_exempt
 import json
-from django.http import JsonResponse
-from django.template.loader import render_to_string  # Para usar templates si es necesario
-from django.utils.html import strip_tags  # Para generar una versión de solo texto
-from datetime import datetime, timedelta
-from django.core.mail import send_mail
+from   django.http                    import HttpResponseBadRequest, JsonResponse
+from   django.template.loader         import render_to_string  # Para usar templates si es necesario
+from   django.utils.html              import strip_tags  # Para generar una versión de solo texto
+from   datetime                       import datetime, timedelta
+from   django.utils                   import timezone
+from   django.core.mail               import send_mail
+from   django.core.paginator          import Paginator
+from   django.db.models               import Q
+from   django.views.decorators.http   import require_POST
 import os
 import io
 import pandas as pd
-from django.shortcuts import get_object_or_404, render, redirect
-from django.contrib.auth.decorators import login_required
-from .forms import CSVUploadForm , ExcelUploadFrom, TareaForm
-from openpyxl.styles import PatternFill
-from django.http import HttpResponse
-from datetime import date
-from calendar import monthrange
-from .models import Tarea, User
+from   django.shortcuts               import get_object_or_404, render, redirect
+from   django.contrib.auth.decorators import login_required
+from   .forms                         import CSVUploadForm , ExcelUploadFrom, TareaForm
+from   openpyxl.styles                import PatternFill
+from   django.http                    import HttpResponse
+from   datetime                       import date
+from   calendar                       import monthrange
+from   .models                        import Tarea, User
 
 
 @login_required
@@ -30,7 +34,7 @@ def obtener_usuario_predeterminado():
 
 @login_required
 def procesar_csv(request):
-    context = {}
+    context          = {}
     context['error'] = ''
     if request.method == "POST":
         form = CSVUploadForm (request.POST, request.FILES)
@@ -43,14 +47,14 @@ def procesar_csv(request):
             file_name, file_extension = os.path.splitext(archivo.name)
 
             if not validar_extension(file_extension, 0):
-                context['form'] = form
+                context['form']  = form
                 context['error'] = "Por favor, sube un archivo con extensión .csv"
                 return render(request, 'csv_processor/procesar_csv.html', context)
             
             pd.set_option('display.max_rows', None)
             
             # Obtener el directorio donde está el archivo CSV que se sube
-            csv_directory = os.path.dirname(archivo.name)  # obtiene el directorio del archivo CSV
+            csv_directory    = os.path.dirname(archivo.name)  # obtiene el directorio del archivo CSV
 
             # Crear la ruta completa para el archivo de salida en el mismo directorio
             output_file_name = os.path.join(csv_directory, archivo.name)  # Usa el mismo nombre de archivo
@@ -452,18 +456,29 @@ def crear_archivo_excel_respuesta(df, output_file_name, file_sheet):
 @login_required
 def tablero_kanban(request):
     try:
-        hoy = date.today()
-        anio = int(request.GET.get('anio', hoy.year))
-        mes = int(request.GET.get('mes', hoy.month))
+        hoy               = date.today()
+        anio              = int(request.GET.get('anio', hoy.year))
+        mes               = int(request.GET.get('mes', hoy.month))
+        ahora             = timezone.now()
         
-        primer_dia = date(anio, mes, 1)
-        ultimo_dia = primer_dia.replace(day=monthrange(anio, mes)[1])
+        primer_dia        = date(anio, mes, 1)
+        ultimo_dia        = primer_dia.replace(day=monthrange(anio, mes)[1])
 
-        usuario = request.user
+        usuario           = request.user
 
-        tareas_pendientes = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='pendiente', usuario=usuario)
+        tareas_pendientes  = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='pendiente', usuario=usuario)
         tareas_en_progreso = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='en_progreso', usuario=usuario)
-        tareas_completadas = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='completada', usuario=usuario)
+       
+        tareas_completadas = Tarea.objects.filter(
+            Q(
+                fecha__range=(primer_dia, ultimo_dia),
+                estado='completada',
+                usuario=usuario
+            ) & (
+                Q(fecha_completado__isnull=True) |
+                Q(fecha_completado__gt=ahora - timedelta(days=1))
+            )
+        )
         
         context = {
             'hoy': primer_dia,
@@ -486,10 +501,10 @@ def tablero_kanban(request):
 def crear_tarea(request):
     if request.method == 'POST':
         
-        nombre = request.POST.get('nombre')
+        nombre      = request.POST.get('nombre')
         descripcion = request.POST.get('descripcion')
-        fecha = request.POST.get('fecha')
-        fechavence = request.POST.get('fecha_vencimiento')
+        fecha       = request.POST.get('fecha')
+        fechavence  = request.POST.get('fecha_vencimiento')
 
         if nombre and descripcion and fecha:
             try:
@@ -499,11 +514,11 @@ def crear_tarea(request):
                 
 
                 tarea = Tarea(
-                    titulo=nombre,
-                    descripcion=descripcion,
-                    fecha=fecha,
+                    titulo            = nombre,
+                    descripcion       = descripcion,
+                    fecha             = fecha,
                     fecha_vencimiento = fechavence,
-                    usuario=usuario,
+                    usuario           = usuario,
                 )
                 tarea.save()
                 return redirect('kanban')
@@ -517,13 +532,18 @@ def crear_tarea(request):
 
 @csrf_exempt
 def actualizar_estado_tarea(request):
-
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
-            tarea_id = tarea_id = data.get('tarea_id') or data.get('id')
+            data         = json.loads(request.body)
+            tarea_id     = data.get('tarea_id') or data.get('id')
             nuevo_estado = data.get('estado')
-            tarea = Tarea.objects.get(id=tarea_id)
+            tarea        = Tarea.objects.get(id=tarea_id)
+
+            if tarea.estado != 'completada' and nuevo_estado == 'completada':
+                tarea.fecha_completado = timezone.now()
+            elif nuevo_estado != 'completada':
+                tarea.fecha_completado = None  # Resetear si vuelve a otro estado
+
             tarea.estado = nuevo_estado
             print(tarea.estado)
             tarea.save()
@@ -535,6 +555,7 @@ def actualizar_estado_tarea(request):
 
     return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
 
+
 @login_required
 @csrf_exempt  # ⚠️ Temporal, mientras implementás CSRF bien con fetch
 def editar_tarea(request, tarea_id):
@@ -542,9 +563,9 @@ def editar_tarea(request, tarea_id):
 
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
-            tarea.titulo = data.get('titulo')
-            tarea.descripcion = data.get('descripcion')
+            data                    = json.loads(request.body)
+            tarea.titulo            = data.get('titulo')
+            tarea.descripcion       = data.get('descripcion')
             tarea.fecha_vencimiento = data.get('fecha')
             tarea.save()
             return JsonResponse({'success': True})
@@ -572,6 +593,37 @@ def eliminar_tarea(request, tarea_id):
     
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
+@login_required
+def historial_tareas_completadas(request):
+    usuario      = request.user
+    tareas_lista = Tarea.objects.filter(
+        estado   = 'completada',
+        usuario  = usuario
+    ).order_by('-fecha_completado')
+
+    paginator   = Paginator(tareas_lista, 10)  # 10 tareas por página
+    page_number = request.GET.get('page')
+    page_obj    = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj  # ✅ nombre correcto
+    }
+    return render(request, 'csv_processor/historial_tareas.html', context)
+
+@require_POST
+@login_required
+def cambiar_estado_tarea(request, tarea_id):
+    nuevo_estado = request.POST.get('estado')
+    tarea        = get_object_or_404(Tarea, id=tarea_id, usuario=request.user)
+
+    if nuevo_estado in ['pendiente', 'en_progreso']:
+        tarea.estado           = nuevo_estado
+        tarea.fecha_completado = None  # quitamos fecha de completado si se revierte
+        tarea.save()
+        return redirect('historial_tareas')
+    
+    return HttpResponseBadRequest("Estado inválido")
+
 #Envia correos con las tareas pendientes o en proceso
 @csrf_exempt
 def enviar_tareas(request):
@@ -579,7 +631,7 @@ def enviar_tareas(request):
     usuarios = User.objects.all()
     
     # Obtener la fecha actual
-    fecha_actual = datetime.now().date()
+    fecha_actual      = datetime.now().date()
     # Definir el rango de "próxima vencimiento" (por ejemplo, 15 días)
     rango_vencimiento = fecha_actual + timedelta(days=15)
     
