@@ -374,7 +374,6 @@ nav {
         display: inline-block;
         margin: 10px auto;
         font-size: 10px;
-        margin-top: 20px;
     }
 
     .main-content {
@@ -414,7 +413,6 @@ nav {
     display: inline-block;     /* Permite usar padding correctamente */
     transition: background-color 0.3s ease; /* Animación suave */
     margin-left: 65px;
-    margin-top: 30px;
   }
   
   .link:hover {
