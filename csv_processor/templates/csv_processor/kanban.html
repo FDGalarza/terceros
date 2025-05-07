@@ -1,5 +1,4 @@
 {% extends 'csv_processor/head.html' %}
-{% block title %}Accounter Tools{% endblock %}
 
 {% block content %}
 <h1>Tareas y Obligaciones - {{ hoy|date:"F Y" }}</h1>
@@ -9,7 +8,7 @@
     <button class="mes-btn" onclick="cambiarMes(1)">Mes siguiente →</button>
 </div>
 <div class="kanban-help">
-    <p>😊 ¿Querés mover una tarjeta? Solo arrastrala a la columna que le corresponde. ¡Así de fácil!</p>
+    <p>😊 ¿Querés gestinar una tarjeta? Solo arrastrala al estado que le corresponde. ¡Así de fácil!</p>
 </div>
 <div class="kanban-board" data-id="{{ tarea.id }}" style="display: flex; gap: 20px; justify-content: space-between; font-family: Arial, sans-serif;">
     {% for estado, tareas in tareas_por_estado.items %}

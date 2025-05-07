@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Función que se activa al hacer clic en una tarea
-function editarTarea(id, titulo, descripcion, fecha) {
+window.editarTarea = function(id, titulo, descripcion, fecha){
    
     // Llenar los datos del modal con los datos de la tarea
     document.getElementById('tareaTitulo').value = titulo;
@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
   
-function eliminarTarea(tareaId){
+  window.eliminarTarea = function(tareaId){
     // Confirmación de eliminación
     if (confirm('¿Estás seguro que quieres eliminar esta tarea?')) {
         // Enviar la solicitud para eliminar la tarea
@@ -344,12 +344,44 @@ function eliminarTarea(tareaId){
 
 //descargar formatos de como archivos de excel
 function downloadTableAsXLSX() {
-    // Obtiene la tabla
     var table = document.getElementById("estructura_tabla");
+    var currentPath = window.location.pathname;
+    var formatoSelect = document.getElementById("id_file_format");
+    var formatoValue = formatoSelect ? formatoSelect.value : "formato";
 
-    // Convierte la tabla HTML a una hoja de Excel
-    var wb = XLSX.utils.table_to_book(table, { sheet: "Hoja 1" });
+    // Normaliza la ruta quitando barras finales
+    currentPath = currentPath.replace(/\/+$/, "");
 
-    // Crea y descarga el archivo XLSX
-    XLSX.writeFile(wb, "tabla.xlsx");
+    // Define nombre base
+    var nombreArchivo = formatoValue;
+
+    if (currentPath.endsWith("procesar_excel")) {
+        var wb = XLSX.utils.table_to_book(table, { sheet: "Hoja 1" });
+        XLSX.writeFile(wb, nombreArchivo + ".xls");
+        console.log("Descargando como .xls");
+    } else if (currentPath.endsWith("procesar_csv")) {
+        var csv = [];
+        var rows = table.querySelectorAll("tr");
+
+        rows.forEach(function(row) {
+            var cols = row.querySelectorAll("th, td");
+            var rowData = [];
+            cols.forEach(function(col) {
+                rowData.push('"' + col.innerText.replace(/"/g, '""') + '"');
+            });
+            csv.push(rowData.join(","));
+        });
+
+        var csvContent = csv.join("\n");
+        var blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = nombreArchivo + ".csv";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        console.log("Descargando como .csv");
+    } else {
+        alert("Ruta no reconocida para descarga.");
+    }
 }

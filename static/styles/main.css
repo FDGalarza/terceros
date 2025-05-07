@@ -233,7 +233,7 @@ nav {
     width: 150px; /* Ajusta el tamaño del logo según necesites */
     height: auto;
     margin-bottom: 10px; /* Espacio entre el logo y el título */
-    margin-left: 40px;
+    margin-left: 0px;
     border-radius: 50%;
 }
 

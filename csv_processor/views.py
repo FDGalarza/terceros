@@ -466,8 +466,21 @@ def tablero_kanban(request):
 
         usuario           = request.user
 
-        tareas_pendientes  = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='pendiente', usuario=usuario)
-        tareas_en_progreso = Tarea.objects.filter(fecha__range=(primer_dia, ultimo_dia), estado='en_progreso', usuario=usuario)
+        tareas_pendientes  = Tarea.objects.filter(
+                                                    fecha__range=(
+                                                                   primer_dia,  
+                                                                   ultimo_dia), 
+                                                    estado='pendiente', 
+                                                    usuario=usuario
+                                                 ).order_by('fecha_vencimiento')
+        
+        tareas_en_progreso = Tarea.objects.filter(
+                                                    fecha__range=(
+                                                                   primer_dia, 
+                                                                   ultimo_dia), 
+                                                    estado='en_progreso', 
+                                                    usuario=usuario
+                                                 ).order_by('fecha_vencimiento')
        
         tareas_completadas = Tarea.objects.filter(
             Q(
@@ -478,7 +491,7 @@ def tablero_kanban(request):
                 Q(fecha_completado__isnull=True) |
                 Q(fecha_completado__gt=ahora - timedelta(days=1))
             )
-        )
+        ).order_by('fecha_vencimiento')
         
         context = {
             'hoy': primer_dia,
