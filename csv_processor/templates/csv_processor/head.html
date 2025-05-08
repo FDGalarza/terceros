@@ -26,8 +26,8 @@
             
                 <ul class="flex-column">
                     <li class="nav-item">
-                        <a href="{% url 'procesar_csv' %}" class="nav-link {% if request.resolver_match.url_name == 'procesar_csv' %}active{% endif %}">
-                            <i class="fa-solid fa-file-csv"></i> Consolidar Terceros CSV
+                        <a href="{% url 'crear_cliente' %}" class="nav-link {% if request.resolver_match.url_name == 'crear_cliente' %}active{% endif %}">
+                            <i class="fa-solid fa-user-plus"></i> Crear Cliente
                         </a>
                     </li>
                     <li class="nav-item">
@@ -60,10 +60,40 @@
         <div class="main-content">
             
             <main class="container mt-5">
+
+                {% if error %}
+                <div class="custom-alert custom-alert-danger">
+                    <span class="custom-alert-icon">❌</span>
+                    <span class="custom-alert-text">{{ error }}</span>
+                    <button type="button" class="custom-alert-close" onclick="this.parentElement.style.display='none';">&times;</button>
+                </div>
+            {% endif %}
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="custom-alert custom-alert-{{ message.tags }}">
+                        {% if message.tags == "success" %}
+                            <span class="custom-alert-icon">✅</span>
+                        {% elif message.tags == "error" %}
+                            <span class="custom-alert-icon">❌</span>
+                        {% elif message.tags == "warning" %}
+                            <span class="custom-alert-icon">⚠️</span>
+                        {% else %}
+                            <span class="custom-alert-icon">ℹ️</span>
+                        {% endif %}
+                        <span class="custom-alert-text">{{ message }}</span>
+                        <button type="button" class="custom-alert-close" aria-label="Cerrar">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+                
+                    
                 {% block content %}
                     <!-- El contenido específico de cada página se insertará aquí -->
                 {% endblock %}
-                
             </main>
         </div>
         
@@ -80,7 +110,6 @@
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-        <script src="https://unpkg.com/htmx.org@1.9.2"></script>
         <script src="{% static 'js/main.js' %}?v={{ version }}"></script>
     </body>
 </html>

@@ -8,6 +8,7 @@
     <thead>
         <tr>
             <th>Título</th>
+            <th>Cliente</th>
             <th>Descripción</th>
             <th>Fecha</th>
             <th>Vencimiento</th>
@@ -19,6 +20,10 @@
         {% for tarea in page_obj  %}
         <tr>
             <td>{{ tarea.titulo }}</td>
+            <td>{% if tarea.cliente %}
+                    {{ tarea.cliente }}
+                {% endif %}
+            </td>
             <td>{{ tarea.descripcion }}</td>
             <td>{{ tarea.fecha }}</td>
             <td>{{ tarea.fecha_vencimiento }}</td>
@@ -41,6 +46,7 @@
                         🔄 En progreso
                     </button>
                 </form>
+                
             </td>
         </tr>
         {% empty %}
@@ -48,6 +54,7 @@
             <td colspan="6" style="text-align: center;">No hay tareas completadas aún.</td>
         </tr>
         {% endfor %}
+        
     </tbody>
 </table>
 <div class="pagination">
@@ -67,6 +74,10 @@
         {% endif %}
     </span>
 </div>
-
+<button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalExportarReporte">
+    📝 Generar Reporte
+</button>
 <a href="{% url 'kanban' %}" class="btn btn-secondary">⬅ Volver al Kanban</a>
+
+{% include 'csv_processor/exportar_reporte.html' %}
 {% endblock %}

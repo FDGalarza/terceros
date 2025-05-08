@@ -16,32 +16,6 @@
                 </div>
                 <button type="submit">Procesar archivo</button>
             </form>
-
-            
-
-            {% if data %}
-                <h2 class="my-4">Datos procesados:</h2>
-                <div class="table-responsive">
-                    <!-- Mostrar los datos procesados -->
-                    {{ data|safe }}
-                </div>
-            {% elif error %}
-                <div class="alert alert-danger alert-dismissible fade show">
-                    {{ error }}
-                    <button type="button" class="close" data-dismiss="alert">&times;</button>
-                </div>
-            {% endif %}
-
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="close" data-dismiss="alert">&times;</button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-            <!-- Contenedor donde se mostrará la estructura en formato de tabla -->
-        
         </div>
         <!-- Incluir el modal desde el template modal_template.html -->
         {% include 'csv_processor/estructura_archivo.html' %}

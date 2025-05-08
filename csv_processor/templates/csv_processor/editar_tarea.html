@@ -17,6 +17,14 @@
                         <textarea class="form-control" id="tareaDescripcion" rows="3" required></textarea>
                     </div>
                     <div class="mb-3">
+                        <label for="tareaCliente" class="form-label">Cliente</label>
+                        <select class="form-select" id="tareaCliente" required>
+                            {% for cliente in clientes %}
+                                <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label for="tareaFecha" class="form-label">Fecha de Vencimiento</label>
                         <input type="date" class="form-control" id="tareaFecha" required>
                     </div>

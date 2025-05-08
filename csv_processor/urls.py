@@ -16,9 +16,8 @@ urlpatterns = [
     path('procesar_csv/eliminar_tarea/<int:tarea_id>/', views.eliminar_tarea, name='eliminar_tarea'),
     path('tareas/historial/', views.historial_tareas_completadas, name='historial_tareas'),
     path('tareas/<int:tarea_id>/cambiar_estado/', views.cambiar_estado_tarea, name='cambiar_estado_tarea'),
-
-    
-
+    path('crear_cliente/', views.crear_cliente, name='crear_cliente'),
+    path('exportar_reporte_cliente/', views.exportar_reporte_cliente, name='exportar_reporte_cliente'),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

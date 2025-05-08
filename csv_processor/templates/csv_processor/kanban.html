@@ -8,7 +8,7 @@
     <button class="mes-btn" onclick="cambiarMes(1)">Mes siguiente →</button>
 </div>
 <div class="kanban-help">
-    <p>😊 ¿Querés gestinar una tarjeta? Solo arrastrala al estado que le corresponde. ¡Así de fácil!</p>
+    <p>😊 ¿Querés gestionar una tarjeta? Solo arrastrala al estado que le corresponde. ¡Así de fácil!</p>
 </div>
 <div class="kanban-board" data-id="{{ tarea.id }}" style="display: flex; gap: 20px; justify-content: space-between; font-family: Arial, sans-serif;">
     {% for estado, tareas in tareas_por_estado.items %}
@@ -41,9 +41,15 @@
                                 padding: 10px;
                                 border-radius: 5px;
                                 box-shadow: 1px 1px 4px rgba(0,0,0,0.05);">
-                <strong>{{ tarea.titulo }}</strong><br>
+                <strong>
+                    {{ tarea.titulo }}
+                    {% if tarea.cliente %}
+                        - {{ tarea.cliente.nombre }}
+                    {% endif %}
+                </strong><br>
                 <small>⏳ <strong>Vence:</strong> {{ tarea.fecha_vencimiento }}</small><br>
                 <p style="margin-top: 5px;">{{ tarea.descripcion }}</p>
+                
 
                 <!-- Botón de eliminar con ícono y tooltip -->
                 <button type="button" class="btn btn-outline-danger btn-sm"  
@@ -57,7 +63,13 @@
                 <!--Editar tarea-->
                 <button type="button" 
                         class="btn btn-outline-warning btn-sm" 
-                        onclick="editarTarea({{ tarea.id }}, '{{ tarea.titulo }}', '{{ tarea.descripcion }}', '{{ tarea.fecha_vencimiento|date:"Y-m-d" }}')"
+                        onclick="editarTarea(
+                                                {{ tarea.id }},
+                                                '{{ tarea.titulo|escapejs }}',
+                                                '{{ tarea.descripcion|escapejs }}',
+                                                '{{ tarea.fecha_vencimiento|date:"Y-m-d" }}',
+                                                 '{{ tarea.cliente.id|default:"null" }}'
+                                            )"
                         data-bs-toggle="tooltip"
                         data-bs-placement="top"
                         title="Editar tarea">
@@ -71,7 +83,7 @@
 
         </div>
     {% endfor %}
-    {% include 'csv_processor/editar_tarea.html' %}
+    {% include 'csv_processor/editar_tarea.html' with clientes=clientes %}
 </div>
 <div id="url-actualizar-estado" data-url="{% url 'actualizar_estado_tarea' %}"></div>
 <div id="url-editar-tarea" data-url="{% url 'editar_tarea' 0 %}"></div>
