@@ -225,12 +225,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Función que se activa al hacer clic en una tarea
-window.editarTarea = function(id, titulo, descripcion, fecha){
-   
+window.editarTarea = function(id, titulo, descripcion, fecha, clienteId){
+    
     // Llenar los datos del modal con los datos de la tarea
     document.getElementById('tareaTitulo').value = titulo;
     document.getElementById('tareaDescripcion').value = descripcion;
     document.getElementById('tareaFecha').value = formatearFecha(fecha);
+
+    // Asignar el cliente si existe
+    document.getElementById('tareaCliente').value = clienteId || "";
 
     // Agregar el ID de la tarea al formulario (para poder identificarla al guardar)
     const form = document.getElementById('formEditarTarea');
@@ -244,7 +247,6 @@ window.editarTarea = function(id, titulo, descripcion, fecha){
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('formEditarTarea');
   
-    // Verificamos si el formulario existe antes de agregar el listener
     if (form) {
       form.addEventListener('submit', function (event) {
         event.preventDefault();
@@ -253,13 +255,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const titulo = document.getElementById('tareaTitulo').value.trim();
         const descripcion = document.getElementById('tareaDescripcion').value.trim();
         const fecha = document.getElementById('tareaFecha').value;
+        const clienteId = document.getElementById('tareaCliente').value;
   
         if (!titulo || !descripcion || !fecha) {
           alert("Por favor completá todos los campos.");
           return;
         }
   
-        
         const urlBase = document.getElementById('url-editar-tarea').dataset.url;
         const url = urlBase.replace(/0\/?$/, `${tareaId}/`);
   
@@ -272,25 +274,26 @@ document.addEventListener('DOMContentLoaded', function () {
           body: JSON.stringify({
             titulo: titulo,
             descripcion: descripcion,
-            fecha: fecha
+            fecha: fecha,
+            cliente_id: clienteId || null
           })
         })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            location.reload();
-          } else {
-            alert("Hubo un error al guardar la tarea.");
-          }
-        })
-        .catch(error => console.error("Error:", error));
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              location.reload();
+            } else {
+              alert("Hubo un error al guardar la tarea.");
+            }
+          })
+          .catch(error => console.error("Error:", error));
   
-        // Cerrar el modal (si estás usando Bootstrap 5 sin jQuery)
         const modal = bootstrap.Modal.getInstance(document.getElementById('editarTareaModal'));
         if (modal) modal.hide();
       });
     }
   });
+  
 
 
 // Función para formatear la fecha en YYYY-MM-DD
@@ -359,29 +362,53 @@ function downloadTableAsXLSX() {
         var wb = XLSX.utils.table_to_book(table, { sheet: "Hoja 1" });
         XLSX.writeFile(wb, nombreArchivo + ".xls");
         console.log("Descargando como .xls");
-    } else if (currentPath.endsWith("procesar_csv")) {
-        var csv = [];
-        var rows = table.querySelectorAll("tr");
-
-        rows.forEach(function(row) {
-            var cols = row.querySelectorAll("th, td");
-            var rowData = [];
-            cols.forEach(function(col) {
-                rowData.push('"' + col.innerText.replace(/"/g, '""') + '"');
-            });
-            csv.push(rowData.join(","));
-        });
-
-        var csvContent = csv.join("\n");
-        var blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        var link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = nombreArchivo + ".csv";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        console.log("Descargando como .csv");
     } else {
         alert("Ruta no reconocida para descarga.");
     }
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const modalEl = document.getElementById('modalExportarReporte');
+    const form = document.getElementById('formExportarReporte');
+    const errorDiv = document.getElementById('exportarErrores');
+  
+    modalEl.addEventListener('show.bs.modal', function () {
+      form.reset();
+      errorDiv.classList.add('d-none');
+      errorDiv.style.display = 'none';
+      errorDiv.innerHTML = '';
+    });
+  
+    form.addEventListener('submit', function (event) {
+      const cliente = document.getElementById('clienteSelect').value;
+      const fechaInicio = document.getElementById('fechaInicio').value;
+      const fechaFin = document.getElementById('fechaFin').value;
+  
+      let errores = [];
+  
+      if (!cliente) errores.push('Por favor seleccioná un cliente.');
+      if (!fechaInicio || !fechaFin) {
+        errores.push('Por favor completá los 2 campos de fecha.');
+      } else if (fechaInicio > fechaFin) {
+        errores.push('La fecha de inicio no puede ser posterior a la fecha de fin.');
+      }
+  
+      if (errores.length > 0) {
+        event.preventDefault();
+        errorDiv.innerHTML = errores.join('<br>');
+        errorDiv.classList.remove('d-none');
+        errorDiv.style.display = 'block';
+  
+        // Ocultar automáticamente el mensaje después de 5 segundos
+        setTimeout(() => {
+          errorDiv.classList.add('d-none');
+          errorDiv.style.display = 'none';
+          errorDiv.innerHTML = '';
+        }, 5000);
+      }
+    });
+  });
+  
+  
+  
+

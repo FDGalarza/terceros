@@ -1,3 +1,4 @@
+from   django.contrib                 import messages
 from   django.views.decorators.csrf   import csrf_exempt
 import json
 from   django.http                    import HttpResponseBadRequest, JsonResponse
@@ -9,6 +10,16 @@ from   django.core.mail               import send_mail
 from   django.core.paginator          import Paginator
 from   django.db.models               import Q
 from   django.views.decorators.http   import require_POST
+from   django.utils.timezone          import now
+from   django.templatetags.static     import static
+from   django.conf                    import settings
+from   docx                           import Document
+from   django.utils.timezone          import make_aware
+from   docx.shared                    import Pt, RGBColor, Inches
+from   docx.enum.text                 import WD_ALIGN_PARAGRAPH
+from   docx.enum.table                import WD_TABLE_ALIGNMENT
+from   docx.oxml                      import OxmlElement
+from   docx.oxml.ns                   import qn
 import os
 import io
 import pandas as pd
@@ -19,7 +30,7 @@ from   openpyxl.styles                import PatternFill
 from   django.http                    import HttpResponse
 from   datetime                       import date
 from   calendar                       import monthrange
-from   .models                        import Tarea, User
+from   .models                        import Tarea, User, ControlActualizacionMensual, Cliente
 
 
 @login_required
@@ -31,159 +42,6 @@ def obtener_usuario_predeterminado():
 
     # en tu vista:
     usuario = request.user if request.user.is_authenticated else obtener_usuario_predeterminado()
-
-@login_required
-def procesar_csv(request):
-    context          = {}
-    context['error'] = ''
-    if request.method == "POST":
-        form = CSVUploadForm (request.POST, request.FILES)
-        if form.is_valid():
-            #obtener el formatod del archivo seleccionado
-            file_format = form.cleaned_data['file_format']
-            archivo     = request.FILES['csv_file']
-
-            # Validar que el archivo tenga la extensión '.csv'
-            file_name, file_extension = os.path.splitext(archivo.name)
-
-            if not validar_extension(file_extension, 0):
-                context['form']  = form
-                context['error'] = "Por favor, sube un archivo con extensión .csv"
-                return render(request, 'csv_processor/procesar_csv.html', context)
-            
-            pd.set_option('display.max_rows', None)
-            
-            # Obtener el directorio donde está el archivo CSV que se sube
-            csv_directory    = os.path.dirname(archivo.name)  # obtiene el directorio del archivo CSV
-
-            # Crear la ruta completa para el archivo de salida en el mismo directorio
-            output_file_name = os.path.join(csv_directory, archivo.name)  # Usa el mismo nombre de archivo
-            output_file_name = output_file_name.replace('csv', 'xlsx')  # Cambia la extensión de '.csv' a '.xlsx'
-
-            try:
-                
-                # Intentar leer el archivo CSV con diferentes delimitadores
-                df = leer_archivo(archivo, 0)
-
-                #Evitar que ponga decimales
-                df = df.apply(pd.to_numeric, errors='ignore').astype('Int64', errors='ignore')
-
-                # Reemplaza las celdas vacías por texto vacío ('') en todo el DataFrame
-                df = df.fillna(0)
-                df = df.applymap(lambda x: '' if x == 0 else x)
-                
-                #procesar segun el formato seleccionado
-                if file_format == '1006':
-
-                    #convierte a numerico los valores de la columna impouestos doscontables
-                    df[' Impuesto generado '] = pd.to_numeric(df[' Impuesto generado '], errors='coerce')
-                    
-                    df[' IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas '] = pd.to_numeric(df[' IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas '], errors='coerce')
-                    
-                    #agrupa y suma los valores de la columna I
-                    df_grouped_I = df.groupby(['Tipo de Documento', 'Número identificación', 'DV',
-                                               'Primer apellido del informado', 'Segundo apellido del informado',
-                                               'Primer nombre del informado', 'Otros nombres del informado',
-                                               'Razón social informado'])[' Impuesto generado '].sum().reset_index()
-                    
-                    #agrupa y suma los valores de la columna J
-                    df_grouped_J = df.groupby(['Tipo de Documento', 'Número identificación', 'DV',
-                                               'Primer apellido del informado', 'Segundo apellido del informado',
-                                               'Primer nombre del informado', 'Otros nombres del informado',
-                                               'Razón social informado'])[' IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas '].sum().reset_index()
-                    
-                    # Agrupa y suma los valores de la columna J
-                    df_grouped_K = df.groupby(['Tipo de Documento', 'Número identificación', 'DV',
-                                               'Primer apellido del informado', 'Segundo apellido del informado',
-                                               'Primer nombre del informado', 'Otros nombres del informado',
-                                               'Razón social informado'])['Impuesto al consumo'].sum().reset_index()
-
-                    # Hace merge de las columnas sumadas con las demás columnas
-                    merged_ij = pd.merge(df_grouped_I, df_grouped_J, on=[ 'Tipo de Documento', 'Número identificación', 'DV',
-                                                                          'Primer apellido del informado', 'Segundo apellido del informado',
-                                                                          'Primer nombre del informado', 'Otros nombres del informado',
-                                                                          'Razón social informado'
-                                                                        ], how='left')
-
-                    df_grouped = pd.merge(merged_ij, df_grouped_K, on=[
-                                                                        'Tipo de Documento', 'Número identificación', 'DV',
-                                                                        'Primer apellido del informado', 'Segundo apellido del informado',
-                                                                        'Primer nombre del informado', 'Otros nombres del informado',
-                                                                        'Razón social informado'
-                                                                      ], how='left')
-                    
-                    # Crea el archivo Excel en memoria
-                    return crear_archivo_excel_respuesta(df_grouped, output_file_name, file_format)
-
-                elif file_format == '1005':
-
-                    #convierte a numerico los valores de la columna impouestos doscontables
-                    df[' Impuesto descontable '] = pd.to_numeric(df[' Impuesto descontable '], errors='coerce')
-                    
-                    df[' IVA resultante por devoluciones en ventas anuladas, rescindidas o resueltas '] = pd.to_numeric(df[' IVA resultante por devoluciones en ventas anuladas, rescindidas o resueltas '], errors='coerce')
-                    
-                    #agrupa y suma los valores de la columna I
-                    df_grouped_I = df.groupby(['Numero de identificación del informado', 'Tipo de Documento', 'DV', 
-                                             'Primer apellido del informado', 'Segundo apellido del informado',
-                                             'Razón social informado'])[' Impuesto descontable '].sum().reset_index()
-                    
-                    #agrupa y suma los valores de la columna J
-                    df_grouped_J = df.groupby(['Numero de identificación del informado', 'Tipo de Documento', 'DV', 
-                                             'Primer apellido del informado', 'Segundo apellido del informado',
-                                             'Razón social informado'])[' IVA resultante por devoluciones en ventas anuladas, rescindidas o resueltas '].sum().reset_index()
-                    
-                    # hace merge de las columnas sumasdas con las demas columbas
-                    df_grouped = pd.merge(df_grouped_I, df_grouped_J, on=['Numero de identificación del informado', 'Tipo de Documento', 'DV', 
-                                                                          'Primer apellido del informado', 'Segundo apellido del informado',
-                                                                          'Razón social informado'], how='left') 
-                    
-                    # Crea el archivo Excel en memoria
-                    return crear_archivo_excel_respuesta(df_grouped, output_file_name, file_format)
-
-
-                elif file_format == '1007':
-                     
-                     #convierte a numerico los valores de la columna impouestos doscontables
-                     df[' Ingresos brutos recibidos  '] = pd.to_numeric(df[' Ingresos brutos recibidos  '], errors='coerce')
-                    
-                     df[' Devoluciones, rebajas y descuentos '] = pd.to_numeric(df[' Devoluciones, rebajas y descuentos '], errors='coerce')
-
-                     #Agrupar por nit y sumar valores
-                     #agrupa y suma los valores de la columna I
-                     df_grouped_I = df.groupby(['Concepto', 'Tipo de documento', 'Número identificación del informado',
-                                                'Primer apellido del informado', 'Segundo apellido del informado',
-                                                'Primer nombre del informado', 'Otros nombres del informado',
-                                                'Razón social informado', 'País de residencia o domicilio'])[' Ingresos brutos recibidos  '].sum().reset_index()
-                    
-                    #agrupa y suma los valores de la columna J
-                     df_grouped_J = df.groupby(['Concepto', 'Tipo de documento', 'Número identificación del informado',
-                                                'Primer apellido del informado', 'Segundo apellido del informado',
-                                                'Primer nombre del informado', 'Otros nombres del informado',
-                                                'Razón social informado', 'País de residencia o domicilio'])[' Devoluciones, rebajas y descuentos '].sum().reset_index()
-                     
-                     # hace merge de las columnas sumasdas con las demas columbas
-                     df_grouped = pd.merge(df_grouped_I, df_grouped_J, on=['Concepto', 'Tipo de documento', 'Número identificación del informado',
-                                                                           'Primer apellido del informado', 'Segundo apellido del informado',
-                                                                           'Primer nombre del informado', 'Otros nombres del informado',
-                                                                           'Razón social informado', 'País de residencia o domicilio'], how='left') 
-                     
-                     
-                     # Crea el archivo Excel en memoria
-                     # Crea el archivo Excel en memoria
-                     return crear_archivo_excel_respuesta(df_grouped, output_file_name, file_format)
-                     
-                 
-
-            except Exception as e:
-                context['error'] = f"Ocurrio un error al procesar el archivo: {e}"
-
-    else:
-        form = CSVUploadForm ()
-
-    
-    context['form'] = form
-    
-    return render(request, 'csv_processor/procesar_csv.html', context)
 
 @login_required
 def procesar_excel(request):
@@ -456,32 +314,54 @@ def crear_archivo_excel_respuesta(df, output_file_name, file_sheet):
 @login_required
 def tablero_kanban(request):
     try:
-        hoy               = date.today()
-        anio              = int(request.GET.get('anio', hoy.year))
-        mes               = int(request.GET.get('mes', hoy.month))
-        ahora             = timezone.now()
-        
-        primer_dia        = date(anio, mes, 1)
-        ultimo_dia        = primer_dia.replace(day=monthrange(anio, mes)[1])
+        hoy        = date.today()
+        anio       = int(request.GET.get('anio', hoy.year))
+        mes        = int(request.GET.get('mes', hoy.month))
+        ahora      = timezone.now()
 
-        usuario           = request.user
+        primer_dia = date(anio, mes, 1)
+        ultimo_dia = primer_dia.replace(day=monthrange(anio, mes)[1])
+        usuario = request.user
 
-        tareas_pendientes  = Tarea.objects.filter(
-                                                    fecha__range=(
-                                                                   primer_dia,  
-                                                                   ultimo_dia), 
-                                                    estado='pendiente', 
-                                                    usuario=usuario
-                                                 ).order_by('fecha_vencimiento')
-        
+        # Buscar último registro de actualización
+        registro, creado = ControlActualizacionMensual.objects.get_or_create(
+            usuario=usuario,
+            defaults={'ultima_actualizacion': hoy}
+        )
+        necesita_actualizacion = False
+
+        # Primera vez o no actualizado este mes
+        if creado or registro.ultima_actualizacion < primer_dia:
+            # Si es la primera vez (sin importar el día) o si es día 1 del mes
+            if creado or hoy.day == 1:
+                necesita_actualizacion = True
+                primer_dia_mes_anterior = (primer_dia - timedelta(days=1)).replace(day=1)
+                ultimo_dia_mes_anterior = primer_dia - timedelta(days=1)
+
+                tareas_a_mover = Tarea.objects.filter(
+                    fecha__range=(primer_dia_mes_anterior, ultimo_dia_mes_anterior),
+                    estado__in=['pendiente', 'en_progreso'],
+                    usuario=usuario
+                )
+                tareas_a_mover.update(fecha=primer_dia)
+
+                # Actualizar el registro
+                registro.ultima_actualizacion = hoy
+                registro.save()
+
+        # Consultas de tareas
+        tareas_pendientes = Tarea.objects.filter(
+            fecha__range=(primer_dia, ultimo_dia),
+            estado='pendiente',
+            usuario=usuario
+        ).order_by('fecha_vencimiento')
+
         tareas_en_progreso = Tarea.objects.filter(
-                                                    fecha__range=(
-                                                                   primer_dia, 
-                                                                   ultimo_dia), 
-                                                    estado='en_progreso', 
-                                                    usuario=usuario
-                                                 ).order_by('fecha_vencimiento')
-       
+            fecha__range=(primer_dia, ultimo_dia),
+            estado='en_progreso',
+            usuario=usuario
+        ).order_by('fecha_vencimiento')
+
         tareas_completadas = Tarea.objects.filter(
             Q(
                 fecha__range=(primer_dia, ultimo_dia),
@@ -492,7 +372,9 @@ def tablero_kanban(request):
                 Q(fecha_completado__gt=ahora - timedelta(days=1))
             )
         ).order_by('fecha_vencimiento')
-        
+
+        clientes = Cliente.objects.filter(contador=usuario)
+
         context = {
             'hoy': primer_dia,
             'anio': anio,
@@ -502,8 +384,10 @@ def tablero_kanban(request):
                 'en_progreso': tareas_en_progreso,
                 'completada': tareas_completadas,
             },
+            'clientes': clientes,
         }
         return render(request, 'csv_processor/kanban.html', context)
+
     except Exception as e:
         import traceback
         print("⚠️ Error en vista kanban:", e)
@@ -512,36 +396,68 @@ def tablero_kanban(request):
     
 @login_required
 def crear_tarea(request):
+    clientes = Cliente.objects.filter(contador=request.user) if request.user.is_authenticated else []
+
     if request.method == 'POST':
-        
-        nombre      = request.POST.get('nombre')
-        descripcion = request.POST.get('descripcion')
-        fecha       = request.POST.get('fecha')
-        fechavence  = request.POST.get('fecha_vencimiento')
+        nombre       = request.POST.get('nombre')
+        descripcion  = request.POST.get('descripcion')
+        fecha        = request.POST.get('fecha')
+        fechavence   = request.POST.get('fecha_vencimiento')
+        cliente_id   = request.POST.get('cliente')
 
         if nombre and descripcion and fecha:
             try:
-                # Si el usuario no está autenticado, usar un usuario por defecto
+                fecha_creacion     = date.fromisoformat(fecha)
+                fecha_vencimiento  = date.fromisoformat(fechavence)
+
+                if fecha_vencimiento < fecha_creacion or fecha_vencimiento < date.today():
+                    error = "La fecha de vencimiento no puede ser menor a la fecha de creación ni a la fecha actual."
+                    return render(request, 'csv_processor/crear_tarea.html', {
+                        'error': error,
+                        'nombre': nombre,
+                        'descripcion': descripcion,
+                        'fecha': fecha,
+                        'fecha_vencimiento': fechavence,
+                        'clientes': clientes,
+                    })
+
+                cliente = None
+                if cliente_id:
+                    try:
+                        cliente = Cliente.objects.get(id=cliente_id, contador=request.user)
+                    except Cliente.DoesNotExist:
+                        error = "El cliente seleccionado no es válido."
+                        return render(request, 'csv_processor/crear_tarea.html', {
+                            'error': error,
+                            'nombre': nombre,
+                            'descripcion': descripcion,
+                            'fecha': fecha,
+                            'fecha_vencimiento': fechavence,
+                            'clientes': clientes,
+                        })
+
                 if request.user.is_authenticated:
                     usuario = request.user
-                
 
-                tarea = Tarea(
-                    titulo            = nombre,
-                    descripcion       = descripcion,
-                    fecha             = fecha,
-                    fecha_vencimiento = fechavence,
-                    usuario           = usuario,
-                )
-                tarea.save()
-                return redirect('kanban')
+                    tarea = Tarea(
+                        titulo            = nombre,
+                        descripcion       = descripcion,
+                        fecha             = fecha_creacion,
+                        fecha_vencimiento = fecha_vencimiento,
+                        usuario           = usuario,
+                        cliente           = cliente
+                    )
+                    tarea.save()
+                    return redirect('kanban')
 
             except Exception as e:
                 print("Error al guardar la tarea:", e)
         else:
             print("Datos incompletos")
 
-    return render(request, 'csv_processor/crear_tarea.html')
+    return render(request, 'csv_processor/crear_tarea.html', {
+        'clientes': clientes,
+    })
 
 @csrf_exempt
 def actualizar_estado_tarea(request):
@@ -580,6 +496,14 @@ def editar_tarea(request, tarea_id):
             tarea.titulo            = data.get('titulo')
             tarea.descripcion       = data.get('descripcion')
             tarea.fecha_vencimiento = data.get('fecha')
+
+            cliente_id = data.get('cliente_id')
+            if cliente_id:
+                cliente = get_object_or_404(Cliente, id=cliente_id)
+                tarea.cliente = cliente
+            else:
+                tarea.cliente = None  # Si viene vacío, se desasocia
+
             tarea.save()
             return JsonResponse({'success': True})
         except Exception as e:
@@ -590,8 +514,6 @@ def editar_tarea(request, tarea_id):
 @login_required
 @csrf_exempt
 def eliminar_tarea(request, tarea_id):
-    print('id Tarea')
-    print(tarea_id)
     try:
         if request.method == "DELETE":
             # Obtener la tarea que queremos eliminar
@@ -609,6 +531,7 @@ def eliminar_tarea(request, tarea_id):
 @login_required
 def historial_tareas_completadas(request):
     usuario      = request.user
+    clientes = Cliente.objects.filter(contador=usuario).order_by('nombre')
     tareas_lista = Tarea.objects.filter(
         estado   = 'completada',
         usuario  = usuario
@@ -619,7 +542,8 @@ def historial_tareas_completadas(request):
     page_obj    = paginator.get_page(page_number)
 
     context = {
-        'page_obj': page_obj  # ✅ nombre correcto
+        'page_obj': page_obj,
+        'clientes': clientes,
     }
     return render(request, 'csv_processor/historial_tareas.html', context)
 
@@ -713,3 +637,177 @@ def enviar_tareas(request):
             )
 
     return JsonResponse({'status': 'correos enviados'})
+
+@login_required
+def crear_cliente(request):
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        identificacion = request.POST.get('identificacion')
+        email = request.POST.get('email')
+        telefono = request.POST.get('telefono')
+        direccion = request.POST.get('direccion')
+
+        if Cliente.objects.filter(identificacion=identificacion, contador=request.user).exists():
+            messages.error(request, "Ya existe un cliente con esa identificación.")
+        else:
+            Cliente.objects.create(
+                nombre=nombre,
+                identificacion=identificacion,
+                email=email,
+                telefono=telefono,
+                direccion=direccion,
+                contador=request.user
+            )
+            messages.success(request, "Cliente registrado exitosamente.")
+            return redirect('crear_cliente')
+
+    return render(request, 'csv_processor/crear_cliente.html')  # sin redefinir 'messages'
+
+@login_required
+def exportar_reporte_cliente(request):
+    cliente_id = request.GET.get('cliente_id')
+    estado = request.GET.get('estado')
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    hoy = now().date()
+
+    try:
+        cliente = Cliente.objects.get(id=cliente_id)
+    except Cliente.DoesNotExist:
+        return HttpResponse("Cliente no encontrado", status=404)
+
+    # Determinar fechas
+    if fecha_inicio:
+        primer_dia = make_aware(datetime.combine(datetime.strptime(fecha_inicio, '%Y-%m-%d'), datetime.min.time()))
+    else:
+        primer_dia = make_aware(datetime.combine(hoy.replace(day=1), datetime.min.time()))
+
+    if fecha_fin:
+        ultimo_dia = make_aware(datetime.combine(datetime.strptime(fecha_fin, '%Y-%m-%d'), datetime.max.time()))
+    else:
+        ultimo_dia = make_aware(datetime.combine(hoy, datetime.max.time()))
+
+    # Construir filtro base
+    filtro = {'cliente': cliente}
+
+    if estado:
+        filtro['estado'] = estado
+        if estado == 'completado':
+            filtro['fecha_completado__range'] = (primer_dia, ultimo_dia)
+    else:
+        filtro['fecha_completado__range'] = (primer_dia, ultimo_dia)
+
+    print("Estado recibido:", estado)
+    print("Filtro :", filtro)
+    tareas = Tarea.objects.filter(**filtro).order_by('fecha_completado')
+
+    doc = Document()
+
+    # === Agregar tabla para logo y nombre del usuario logueado ===
+    tabla_header = doc.add_table(rows=1, cols=2)
+    tabla_header.alignment = WD_TABLE_ALIGNMENT.LEFT
+
+    perfil = request.user.profile  # Asegúrate que el perfil exista (por señal o creación manual)
+
+    profesion = perfil.profesion or 'Profesión no especificada'
+    area = perfil.areaOperativa or 'Área no especificada'
+    logo_nombre = perfil.nombreLogo or 'logo_default.png'  # nombre del archivo, por ejemplo
+    # Colocar logo en la primera celda (izquierda)
+    print(logo_nombre)
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', logo_nombre)  # Asegúrate de tener este logo
+    if os.path.exists(logo_path):
+        cell_logo = tabla_header.cell(0, 0)
+        cell_logo.width = Inches(1.0)  # Reducir el ancho de la celda para el logo
+        cell_logo.paragraphs[0].add_run().add_picture(logo_path, width=Inches(1.0))  # Ajustamos el tamaño del logo
+        cell_logo.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.LEFT
+
+    # Colocar nombre del usuario logueado en la segunda celda (derecha)
+    cell_nombre_usuario = tabla_header.cell(0, 1)
+    nombre_usuario_parrafo = cell_nombre_usuario.paragraphs[0]
+    
+    # Obtener el nombre del usuario logueado (nombre completo o username)
+    nombre_usuario = request.user.get_full_name() if request.user.get_full_name() else request.user.username
+    
+    # Agregar el nombre del usuario al lado derecho del logo
+    run = nombre_usuario_parrafo.add_run({nombre_usuario})
+    run.bold = True
+    run.font.size = Pt(18)
+    run.font.name = 'Arial'
+    run.font.color.rgb = RGBColor(204, 51, 51 )
+    nombre_usuario_parrafo.alignment = WD_ALIGN_PARAGRAPH.LEFT  # Alineación izquierda para evitar separación
+
+    # Ajustar el ancho de la segunda celda para evitar separación
+    cell_nombre_usuario.width = Inches(3.0)  # Ajustar el ancho de la celda para el nombre del usuario
+
+    
+
+    # Crear un nuevo párrafo debajo
+    parrafo_profesion = cell_nombre_usuario.add_paragraph()
+    run_profesion = parrafo_profesion.add_run({profesion})
+    run_profesion.font.size = Pt(11)
+    run_profesion.font.name = 'Arial'
+    run_profesion.font.color.rgb = RGBColor(100, 100, 100)  # Gris oscuro
+    run_profesion.italic = True  # Aplicar itálica
+    parrafo_profesion.alignment = WD_ALIGN_PARAGRAPH.LEFT
+
+    # === Encabezado con tabla (mismos estilos previos) ===
+    encabezado_tabla = doc.add_table(rows=1, cols=1)
+    encabezado_tabla.alignment = WD_TABLE_ALIGNMENT.CENTER  # Centrar toda la tabla
+    cell = encabezado_tabla.cell(0, 0)
+
+    p = cell.paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    doc.add_paragraph("")
+
+    run = p.add_run(cliente.nombre.upper() + "\n")
+    run.bold = True
+    run.font.size = Pt(22)
+    run.font.name = 'Arial'
+
+    run2 = p.add_run("REPORTE DE ACTIVIDADES\n")
+    run2.bold = True
+    run2.font.size = Pt(14)
+    run2.font.name = 'Arial'
+
+    run3 = p.add_run(f"Período: {primer_dia.date()} a {ultimo_dia.date()}\n")
+    run3.font.size = Pt(11)
+    run3.font.name = 'Arial'
+
+    run4 = p.add_run(f"Departamento: {area}")
+    run4.font.size = Pt(11)
+    run4.italic = True
+    run4.font.name = 'Arial'
+
+    # Agregar borde inferior a la celda
+    tc_pr = cell._tc.get_or_add_tcPr()
+    borders = OxmlElement('w:tcBorders')
+    bottom = OxmlElement('w:bottom')
+    bottom.set(qn('w:val'), 'single')
+    bottom.set(qn('w:sz'), '12')  # Un poco más grueso
+    bottom.set(qn('w:space'), '1')
+    bottom.set(qn('w:color'), '000000')
+    borders.append(bottom)
+    tc_pr.append(borders)
+
+    # Espacio después del encabezado
+    doc.add_paragraph("")
+
+    if tareas.exists():
+        tabla = doc.add_table(rows=1, cols=2)
+        tabla.style = 'Table Grid'
+        hdr_cells = tabla.rows[0].cells
+        hdr_cells[0].text = 'Título'
+        hdr_cells[1].text = 'Descripción'
+
+        for tarea in tareas:
+            row_cells = tabla.add_row().cells
+            row_cells[0].text = tarea.titulo
+            row_cells[1].text = tarea.descripcion
+    else:
+        doc.add_paragraph("No se encontraron tareas para este cliente en el período y estado seleccionados.")
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    response['Content-Disposition'] = f'attachment; filename=Reporte_{cliente.nombre}.docx'
+    doc.save(response)
+    return response

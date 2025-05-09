@@ -402,6 +402,12 @@ nav {
         font-size: 14px; /* Reducir ligeramente el tamaño de fuente si es necesario */
         padding: 10px;  /* Reducir padding en pantallas pequeñas */
     }
+
+    form-row-flex > div {
+        flex: 1 1 calc(50% - 10px);
+    }
+
+    
 }
 
 
@@ -635,3 +641,88 @@ nav {
 .historial .custom-btn:active {
     transform: scale(0.9);
 }
+
+.form-row-flex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.form-row-flex > div {
+    flex: 1 1 100%;
+}
+
+.custom-alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 1rem;
+    font-size: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    animation: slideDown 0.3s ease;
+}
+
+.custom-alert-icon {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.custom-alert-text {
+    flex-grow: 1;
+}
+
+.custom-alert-close {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1;
+    color: #000;
+    opacity: 0.6;
+    transition: opacity 0.2s, transform 0.2s;
+    cursor: pointer;
+    margin-left: 12px;
+}
+
+.custom-alert-close:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.custom-alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.custom-alert-danger,
+.custom-alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.custom-alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.custom-alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
