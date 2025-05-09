@@ -362,28 +362,6 @@ function downloadTableAsXLSX() {
         var wb = XLSX.utils.table_to_book(table, { sheet: "Hoja 1" });
         XLSX.writeFile(wb, nombreArchivo + ".xls");
         console.log("Descargando como .xls");
-    } else if (currentPath.endsWith("procesar_csv")) {
-        var csv = [];
-        var rows = table.querySelectorAll("tr");
-
-        rows.forEach(function(row) {
-            var cols = row.querySelectorAll("th, td");
-            var rowData = [];
-            cols.forEach(function(col) {
-                rowData.push('"' + col.innerText.replace(/"/g, '""') + '"');
-            });
-            csv.push(rowData.join(","));
-        });
-
-        var csvContent = csv.join("\n");
-        var blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        var link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = nombreArchivo + ".csv";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        console.log("Descargando como .csv");
     } else {
         alert("Ruta no reconocida para descarga.");
     }
