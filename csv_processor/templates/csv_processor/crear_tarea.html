@@ -42,10 +42,17 @@
                 <input type="date" class="form-control" id="id_fecha" name="fecha" value="{{ fecha }}" required>
             </div>
 
+
             <div style="flex: 1;">
                 <label for="id_fecha_vencimiento">Fecha de Vencimiento</label>
                 <input type="date" class="form-control" id="id_fecha_vencimiento" name="fecha_vencimiento" value="{{ fecha_vencimiento }}" required>
             </div>
+        </div>
+
+        <!-- Checkbox para Cuenta de Cobro -->
+        <div class="form-group form-check mt-3 mb-3">
+            <input type="checkbox" class="form-check-input" id="id_generar_cuenta" name="generar_cuenta">
+            <label class="form-check-label" for="id_generar_cuenta">Genera cuenta de cobro</label>
         </div>
 
         <button type="submit" class="btn btn-primary">Crear Tarea</button>

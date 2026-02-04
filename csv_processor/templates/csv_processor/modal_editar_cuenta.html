@@ -1,0 +1,38 @@
+<form id="formEditarCuenta" method="post" action="{% url 'editar_cuenta_cobro_modal' cuenta.id %}">
+    {% csrf_token %}
+    <div class="modal-header">
+        <h5 class="modal-title">Editar Cuenta de Cobro</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <div class="mb-3">
+            <label class="form-label">Cliente</label>
+            <!-- Readonly for editing? Usually changing client mid-invoice is rare but allowed implicitly by form. 
+                  However, standard forms.ModelForm includes it. -->
+            {{ form.cliente }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Concepto</label>
+            {{ form.concepto }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Valor</label>
+            {{ form.valor }}
+        </div>
+        <div class="row">
+            <div class="col-6 mb-3">
+                <label class="form-label">Mes</label>
+                {{ form.mes }}
+            </div>
+            <div class="col-6 mb-3">
+                <label class="form-label">Año</label>
+                {{ form.anio }}
+            </div>
+        </div>
+        <div id="editErrors" class="alert alert-danger d-none"></div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+    </div>
+</form>

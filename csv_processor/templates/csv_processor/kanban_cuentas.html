@@ -1,0 +1,281 @@
+{% extends 'csv_processor/head.html' %}
+
+{% block content %}
+<h1>Cuentas de Cobro - {{ hoy|date:"F Y" }}</h1>
+
+<div class="mes-nav">
+    <button class="mes-btn" onclick="cambiarMes(-1)">← Mes anterior</button>
+    <button class="mes-btn" onclick="cambiarMes(1)">Mes siguiente →</button>
+    <button class="mes-btn" onclick="cambiarMes(1)">Mes siguiente →</button>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="kanban-help">
+        <p class="mb-0">💸 Gestiona tus cuentas de cobro arrastrándolas entre estados.</p>
+    </div>
+    <div>
+        <a href="{% url 'lista_conceptos' %}" class="btn btn-outline-secondary me-2">⚙️ Gestionar Conceptos</a>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearCuenta">
+            + Crear Cuenta de Cobro
+        </button>
+    </div>
+</div>
+
+<div class="kanban-board"
+    style="display: flex; gap: 20px; justify-content: space-between; font-family: Arial, sans-serif;">
+    {% for estado, cuentas in cuentas_por_estado.items %}
+    <div class="kanban-column" data-estado="{{ estado }}" ondragover="event.preventDefault()"
+        ondrop="moverCuenta(event, this)"
+        style="border: 1px solid #ccc; padding: 15px; width: 30%; border-radius: 8px; background-color: #f8f9fa; min-height: 300px;">
+        <h2 style="text-align: center;">
+            {% if estado == 'creada' %}Creada
+            {% elif estado == 'enviada' %}Enviada
+            {% elif estado == 'pagada' %}Pagada
+            {% endif %}
+        </h2>
+
+        {% for cuenta in cuentas %}
+        <div class="kanban-card" draggable="true" data-id="{{ cuenta.id }}" data-bs-placement="top"
+            ondragstart="iniciarArrastre(event)" style="background-color: 
+                    {% if estado == 'creada' %}#fff3cd
+                    {% elif estado == 'enviada' %}#d1ecf1
+                    {% elif estado == 'pagada' %}#d4edda
+                    {% else %}#e2e3e5
+                    {% endif %}; 
+                    border: 1px solid #ccc;
+                    margin-bottom: 10px;
+                    padding: 10px;
+                    border-radius: 5px;
+                    box-shadow: 1px 1px 4px rgba(0,0,0,0.05);">
+            <strong>
+                {{ cuenta.tarea.titulo }}
+                {% if cuenta.cliente %}
+                - {{ cuenta.cliente.nombre }}
+                {% endif %}
+            </strong><br>
+            <small>📅 <strong>Creada:</strong> {{ cuenta.fecha_creacion|default:"Pendiente" }}</small><br>
+            <small>⏳ <strong>Vence:</strong> {{ cuenta.fecha_vencimiento|default:"Pendiente" }}</small><br>
+            {% if cuenta.valor %}
+            <small>💰 <strong>Valor:</strong> ${{ cuenta.valor|floatformat:0 }}</small><br>
+            {% endif %}
+            {% if cuenta.concepto %}
+            <small>📝 <strong>Concepto:</strong> {{ cuenta.concepto.nombre }}</small><br>
+            {% endif %}
+
+            <div class="mt-2 d-flex justify-content-end gap-1">
+                <button class="btn btn-sm btn-outline-primary" onclick="abrirModalEditar({{ cuenta.id }})">✏️</button>
+                <a href="{% url 'generar_documento_cuenta' cuenta.id %}" class="btn btn-sm btn-outline-success"
+                    title="Generar Documento">📄</a>
+            </div>
+
+        </div>
+
+        {% empty %}
+        <p style="text-align: center; font-style: italic;">No hay cuentas</p>
+        {% endfor %}
+
+
+    </div>
+    {% endfor %}
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'reporte_cuentas' %}" class="btn btn-info">📊 Ver Reporte de Cuentas</a>
+</div>
+
+<!-- Hidden div to store the URL for updating state via AJAX (handled by custom JS) -->
+
+<!-- Modal Crear Cuenta -->
+<div class="modal fade" id="modalCrearCuenta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="post" action="{% url 'crear_cuenta_cobro' %}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nueva Cuenta de Cobro</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Cliente</label>
+                        {{ form_creacion.cliente }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Concepto</label>
+                        {{ form_creacion.concepto }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Valor</label>
+                        {{ form_creacion.valor }}
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Mes</label>
+                            {{ form_creacion.mes }}
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Año</label>
+                            {{ form_creacion.anio }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Container for Editing (Dynamic Content) -->
+<div class="modal fade" id="modalEditarCuentaContainer" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" id="modalEditarContent">
+            <!-- Content loaded via AJAX -->
+        </div>
+    </div>
+</div>
+
+<div id="url-actualizar-estado-cuenta" data-url="{% url 'actualizar_estado_cuenta' %}"></div>
+
+
+<script>
+    // Simple custom JS for this view relying on the same logic as main.js but pointing to a different URL
+    // We can reuse iniciarArrastre from main.js, but we need a specific 'moverCuenta'
+
+    function moverCuenta(event, targetColumn) {
+        event.preventDefault();
+
+        // This relies on 'tareaArrastrada' global variable from main.js if reused, 
+        // or we need to ensure main.js logic is compatible. 
+        // main.js uses 'tareaArrastrada'.
+
+        if (tareaArrastrada) {
+            const cuentaId = tareaArrastrada.dataset.id;
+            const nuevoEstado = targetColumn.getAttribute('data-estado');
+            targetColumn.appendChild(tareaArrastrada);
+
+            const urlActualizar = document.getElementById('url-actualizar-estado-cuenta').dataset.url;
+
+            fetch(urlActualizar, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}' // Use Django template tag for CSRF if available or function
+                },
+                body: JSON.stringify({
+                    cuenta_id: cuentaId,
+                    estado: nuevoEstado
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Success
+                    } else {
+                        alert("Error al actualizar la cuenta: " + (data.error || 'Unknown error'));
+                        location.reload();
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+        }
+    }
+
+    function abrirModalEditar(cuentaId) {
+        const modalContainer = new bootstrap.Modal(document.getElementById('modalEditarCuentaContainer'));
+        const contentDiv = document.getElementById('modalEditarContent');
+
+        // Use Django's 'url' tag to generate the base path, then replace the placeholder '0' with the actual ID.
+        // This ensures prefixes (like 'procesar_csv/') are handled automatically.
+        const urlBase = "{% url 'editar_cuenta_cobro_modal' 0 %}";
+        const url = urlBase.replace('/0/', '/' + cuentaId + '/');
+
+        // Load content
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                contentDiv.innerHTML = html;
+                modalContainer.show();
+
+                // Add submit handler for the form loaded via AJAX
+                const form = document.getElementById('formEditarCuenta');
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const formData = new FormData(form);
+
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                modalContainer.hide();
+                                location.reload(); // Reload to show changes
+                            } else {
+                                // Show errors
+                                const errorDiv = document.getElementById('editErrors');
+                                errorDiv.classList.remove('d-none');
+                                errorDiv.innerHTML = formatErrors(data.errors);
+                            }
+                        });
+                });
+            });
+    }
+
+    // Helper to format errors
+    function formatErrors(errors) {
+        let html = '<ul>';
+        for (const [field, msgs] of Object.entries(errors)) {
+            html += `<li><strong>${field}:</strong> ${msgs.join(', ')}</li>`;
+        }
+        html += '</ul>';
+        return html;
+    }
+
+    // Handle Creation Form via AJAX
+    document.addEventListener('DOMContentLoaded', function () {
+        const formCrear = document.querySelector('#modalCrearCuenta form');
+        if (formCrear) {
+            formCrear.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(formCrear);
+
+                // Clear previous errors if any (add error container first)
+                let errorDiv = document.getElementById('createErrors');
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.id = 'createErrors';
+                    errorDiv.className = 'alert alert-danger d-none';
+                    formCrear.querySelector('.modal-body').prepend(errorDiv);
+                }
+                errorDiv.classList.add('d-none');
+
+                fetch(formCrear.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            errorDiv.classList.remove('d-none');
+                            errorDiv.innerHTML = formatErrors(data.errors);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
+        }
+    });
+
+</script>
+
+{% endblock %}

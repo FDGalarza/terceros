@@ -1,0 +1,46 @@
+{% extends 'csv_processor/head.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Gestionar Conceptos</h2>
+
+            <form method="post" class="card p-3 mb-4">
+                {% csrf_token %}
+                <h5>Crear Nuevo Concepto</h5>
+                <div class="mb-3">
+                    <label class="form-label">Nombre</label>
+                    {{ form.nombre }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Descripción</label>
+                    {{ form.descripcion }}
+                </div>
+                <button type="submit" class="btn btn-primary">Guardar Concepto</button>
+            </form>
+        </div>
+
+        <div class="col-md-6">
+            <h3>Lista de Conceptos</h3>
+            <div class="list-group">
+                {% for concepto in conceptos %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ concepto.nombre }}</strong><br>
+                        <small class="text-muted">{{ concepto.descripcion|default:"" }}</small>
+                    </div>
+                    <form action="{% url 'eliminar_concepto' concepto.id %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                            onclick="return confirm('¿Seguro que deseas eliminar este concepto?')">Eliminar</button>
+                    </form>
+                </div>
+                {% empty %}
+                <p>No hay conceptos creados.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Tarea
+from .models import Tarea, Concepto, CuentaCobro, Cliente
 from django.contrib.auth.forms import AuthenticationForm
 
 # Opciones de formato para el archivo CSV (estructuras diferentes)
@@ -31,13 +31,7 @@ class ExcelUploadFrom(forms.Form):
     excel_file_proveedor = forms.FileField(label="Proveedores")
 
 #Formulario tareas
-class TareaForm(forms.ModelForm):
-    class Meta:
-        model = Tarea
-        fields = ['titulo', 'descripcion', 'estado', 'fecha_vencimiento', 'fecha']  # Agregar fecha al formulario
-        widgets = {
-            'fecha': forms.DateInput(attrs={'type': 'date'})  # Usar un widget de tipo 'date' para seleccionar fechas
-        }
+
 
 class CustomLoginForm(AuthenticationForm):
     username = forms.CharField(
@@ -48,9 +42,45 @@ class CustomLoginForm(AuthenticationForm):
     )
 
 class TareaForm(forms.ModelForm):
+    generar_cuenta = forms.BooleanField(required=False, label="Genera cuenta de cobro")
+
     class Meta:
         model = Tarea
-        fields = ['titulo', 'descripcion', 'fecha_vencimiento']
+        fields = ['titulo', 'descripcion', 'estado', 'fecha_vencimiento', 'fecha']
+        widgets = {
+            'fecha': forms.DateInput(attrs={'type': 'date'}),
+            'fecha_vencimiento': forms.DateInput(attrs={'type': 'date'})
+        }
 
 
+
+
+
+class ConceptoForm(forms.ModelForm):
+    class Meta:
+        model = Concepto
+        fields = ['nombre', 'descripcion']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+class CuentaCobroForm(forms.ModelForm):
+    class Meta:
+        model = CuentaCobro
+        fields = ['cliente', 'concepto', 'valor', 'mes', 'anio']
+        widgets = {
+            'cliente': forms.Select(attrs={'class': 'form-select'}),
+            'concepto': forms.Select(attrs={'class': 'form-select'}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control'}),
+            'mes': forms.Select(attrs={'class': 'form-select'}),
+            'anio': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(CuentaCobroForm, self).__init__(*args, **kwargs)
+        if user:
+            self.fields['cliente'].queryset = Cliente.objects.filter(contador=user)
+            self.fields['concepto'].queryset = Concepto.objects.filter(contador=user)
 
