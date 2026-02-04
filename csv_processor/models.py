@@ -125,3 +125,13 @@ def actualizar_cuenta_cobro(sender, instance, **kwargs):
                 cuenta.save()
         except CuentaCobro.DoesNotExist:
             pass  # No todas las tareas tienen cuenta de cobro
+
+class Comentario(models.Model):
+    cuenta = models.ForeignKey(CuentaCobro, on_delete=models.CASCADE, related_name='comentarios')
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    texto = models.TextField()
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Comentario en {self.cuenta} - {self.fecha_creacion}"
+

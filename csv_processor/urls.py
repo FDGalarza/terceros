@@ -28,6 +28,8 @@ urlpatterns = [
     path('cuentas/crear/', views.crear_cuenta_cobro, name='crear_cuenta_cobro'),
     path('cuentas/editar/<int:cuenta_id>/', views.editar_cuenta_cobro_modal, name='editar_cuenta_cobro_modal'),
     path('cuentas/generar/<int:cuenta_id>/', views.generar_documento_cuenta, name='generar_documento_cuenta'),
+    path('cuentas/<int:cuenta_id>/comentarios/', views.listar_comentarios, name='listar_comentarios'),
+    path('cuentas/<int:cuenta_id>/comentarios/agregar/', views.agregar_comentario, name='agregar_comentario'),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

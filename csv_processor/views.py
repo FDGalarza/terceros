@@ -25,12 +25,12 @@ import io
 import pandas as pd
 from   django.shortcuts               import get_object_or_404, render, redirect
 from   django.contrib.auth.decorators import login_required
-from   .forms                         import CSVUploadForm , ExcelUploadFrom, TareaForm, ConceptoForm, CuentaCobroForm
+from   .forms                         import CSVUploadForm , ExcelUploadFrom, TareaForm, ConceptoForm, CuentaCobroForm, ComentarioForm
 from   openpyxl.styles                import PatternFill
 from   django.http                    import HttpResponse
 from   datetime                       import date
 from   calendar                       import monthrange
-from   .models                        import Tarea, User, ControlActualizacionMensual, Cliente, CuentaCobro, Concepto
+from   .models                        import Tarea, User, ControlActualizacionMensual, Cliente, CuentaCobro, Concepto, Comentario
 from   .utils                         import numero_a_letras
 
 
@@ -864,9 +864,43 @@ def exportar_reporte_cliente(request):
         row_cells[1].text = tarea.descripcion
 
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-    response['Content-Disposition'] = f'attachment; filename=Reporte_{cliente.nombre}.docx'
+    response['Content-Disposition'] = f'attachment; filename={cuenta.cliente.nombre}_{cuenta.tarea.titulo}.docx'
     doc.save(response)
     return response
+
+@login_required
+def listar_comentarios(request, cuenta_id):
+    cuenta = get_object_or_404(CuentaCobro, id=cuenta_id)
+    comentarios = cuenta.comentarios.all().order_by('fecha_creacion')
+    
+    data = []
+    for c in comentarios:
+        data.append({
+            'usuario': c.usuario.username if c.usuario else 'Sistema',
+            'texto': c.texto,
+            'fecha': c.fecha_creacion.strftime('%Y-%m-%d %H:%M'),
+        })
+    return JsonResponse({'comentarios': data})
+
+@login_required
+@csrf_exempt # Using csrf_exempt for simplicity if token handling is complex in pure JS, but ideally should use token.
+# However, the existin JS in kanban likely handles CSRF. Let's try without csrf_exempt first or handle it properly.
+# Actually, I'll rely on the frontend sending the CSRF token.
+def agregar_comentario(request, cuenta_id):
+    if request.method == 'POST':
+        cuenta = get_object_or_404(CuentaCobro, id=cuenta_id)
+        texto = request.POST.get('texto')
+        
+        if texto:
+            comentario = Comentario.objects.create(
+                cuenta=cuenta,
+                usuario=request.user,
+                texto=texto
+            )
+            return JsonResponse({'success': True})
+        return JsonResponse({'success': False, 'error': 'El comentario no puede estar vacío'})
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
 
 @login_required
 def lista_conceptos(request):

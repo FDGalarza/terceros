@@ -1,5 +1,5 @@
 from django import forms
-from .models import Tarea, Concepto, CuentaCobro, Cliente
+from .models import Tarea, Concepto, CuentaCobro, Cliente, Comentario
 from django.contrib.auth.forms import AuthenticationForm
 
 # Opciones de formato para el archivo CSV (estructuras diferentes)
@@ -83,4 +83,13 @@ class CuentaCobroForm(forms.ModelForm):
         if user:
             self.fields['cliente'].queryset = Cliente.objects.filter(contador=user)
             self.fields['concepto'].queryset = Concepto.objects.filter(contador=user)
+
+class ComentarioForm(forms.ModelForm):
+    class Meta:
+        model = Comentario
+        fields = ['texto']
+        widgets = {
+            'texto': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Escribe un comentario...'}),
+        }
+
 
