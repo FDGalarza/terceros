@@ -47,6 +47,17 @@
                     padding: 10px;
                     border-radius: 5px;
                     box-shadow: 1px 1px 4px rgba(0,0,0,0.05);">
+            {% if estado == 'pagada' %}
+            <!-- Vista simplificada para Pagada -->
+            <strong>{{ cuenta.cliente.nombre }}</strong><br>
+            {% if cuenta.valor %}
+            <small>💰 <strong>Valor:</strong> ${{ cuenta.valor|floatformat:0 }}</small><br>
+            {% endif %}
+            {% if cuenta.concepto %}
+            <small>📝 <strong>Concepto:</strong> {{ cuenta.concepto.nombre }}</small><br>
+            {% endif %}
+            {% else %}
+            <!-- Vista normal para otros estados -->
             <strong>
                 {{ cuenta.tarea.titulo }}
                 {% if cuenta.cliente %}
@@ -61,14 +72,18 @@
             {% if cuenta.concepto %}
             <small>📝 <strong>Concepto:</strong> {{ cuenta.concepto.nombre }}</small><br>
             {% endif %}
+            {% endif %}
 
             <div class="mt-2 d-flex justify-content-end gap-1">
                 <button class="btn btn-sm btn-outline-secondary" onclick="abrirComentarios({{ cuenta.id }})"
                     data-bs-toggle="tooltip" title="Ver comentarios">💬</button>
+
+                {% if estado != 'enviada' and estado != 'pagada' %}
                 <button class="btn btn-sm btn-outline-primary" onclick="abrirModalEditar({{ cuenta.id }})"
                     data-bs-toggle="tooltip" title="Editar cuenta">✏️</button>
                 <a href="{% url 'generar_documento_cuenta' cuenta.id %}" class="btn btn-sm btn-outline-success"
                     title="Generar Documento" data-bs-toggle="tooltip">📄</a>
+                {% endif %}
             </div>
 
         </div>
@@ -181,6 +196,22 @@
         if (tareaArrastrada) {
             const cuentaId = tareaArrastrada.dataset.id;
             const nuevoEstado = targetColumn.getAttribute('data-estado');
+
+            // --- VALIDACIÓN: No permitir devolver de Envíada a Creada ---
+            const columnaOrigen = tareaArrastrada.closest('.kanban-column');
+            const estadoOrigen = columnaOrigen ? columnaOrigen.getAttribute('data-estado') : '';
+
+            if (estadoOrigen === 'enviada' && nuevoEstado === 'creada') {
+                alert("No se puede devolver una cuenta enviada a estado 'Creada'.");
+                return; // Cancelar el movimiento
+            }
+
+            if (estadoOrigen === 'pagada' && nuevoEstado === 'enviada') {
+                alert("Una cuenta pagada no se puede mover a otro estado.");
+                return;
+            }
+            // ------------------------------------------------------------
+
             targetColumn.appendChild(tareaArrastrada);
 
             const urlActualizar = document.getElementById('url-actualizar-estado-cuenta').dataset.url;
@@ -199,10 +230,11 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Success
+                        // Recargar para actualizar la vista de la tarjeta (ocultar fechas, etc. si pasa a Pagada)
+                        location.reload();
                     } else {
                         alert("Error al actualizar la cuenta: " + (data.error || 'Unknown error'));
-                        location.reload();
+                        location.reload(); // Recargar para devolver la tarjeta a su lugar original
                     }
                 })
                 .catch(error => console.error("Error:", error));

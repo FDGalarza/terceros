@@ -684,6 +684,14 @@ def actualizar_estado_cuenta(request):
             nuevo_estado = data.get('estado')
             
             cuenta = CuentaCobro.objects.get(id=cuenta_id, cliente__contador=request.user)
+            
+            # Validar cambio de estado restringido
+            if cuenta.estado == 'enviada' and nuevo_estado == 'creada':
+                 return JsonResponse({'success': False, 'error': "No se puede devolver una cuenta enviada a estado 'Creada'."})
+            
+            if cuenta.estado == 'pagada':
+                 return JsonResponse({'success': False, 'error': "No se puede cambiar el estado de una cuenta pagada."})
+
             cuenta.estado = nuevo_estado
             cuenta.save()
             
@@ -948,6 +956,14 @@ def crear_cuenta_cobro(request):
 def editar_cuenta_cobro_modal(request, cuenta_id):
     cuenta = get_object_or_404(CuentaCobro, id=cuenta_id, cliente__contador=request.user)
     
+    # Validar edición restringida
+    if cuenta.estado == 'enviada':
+        # Si es POST, retornamos error JSON
+        if request.method == 'POST':
+            return JsonResponse({'success': False, 'error': "No se puede editar una cuenta enviada."})
+        # Si es GET, podríamos mostrar un error o simplemente renderizar (el formulario se verá pero al guardar fallará)
+        # Opcionalmente podemos pasar un flag al template
+    
     if request.method == 'POST':
         form = CuentaCobroForm(request.POST, instance=cuenta, user=request.user)
         if form.is_valid():
@@ -963,6 +979,11 @@ def editar_cuenta_cobro_modal(request, cuenta_id):
 @login_required
 def generar_documento_cuenta(request, cuenta_id):
     cuenta = get_object_or_404(CuentaCobro, id=cuenta_id, cliente__contador=request.user)
+    
+    if cuenta.estado == 'enviada':
+        messages.error(request, "No se puede generar documento de una cuenta enviada.")
+        return redirect('tablero_cuentas')
+    
     perfil = request.user.profile
 
     # Validation
