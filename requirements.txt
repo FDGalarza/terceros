@@ -25,7 +25,6 @@ gunicorn==23.0.0
 idna==3.10
 insultgenerator==1.0.3
 kombu==5.5.3
-loremipsum==1.0.5
 lxml==6.0.2
 multidict==6.4.3
 numpy==1.26.4
@@ -51,7 +50,6 @@ tzdata==2025.2
 urllib3==2.4.0
 vine==5.1.0
 wcwidth==0.2.13
-White-Noise==0.1.0
 whitenoise==6.9.0
 xlrd==2.0.1
 yarl==1.19.0
