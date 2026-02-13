@@ -1,11 +1,11 @@
 // Función para mostrar la estructura del archivo según la opción seleccionada
 function mostrarEstructura() {
     var formato = document.getElementById("id_file_format");
-    
+
     // Verificar si el campo de selección existe antes de acceder a su valor
     if (formato) {
         var formatoValue = formato.value;
-        
+
         // Si no se selecciona un formato válido, ocultamos el modal
         if (formatoValue == '0') {
             console.error("No se seleccionó ningún formato válido");
@@ -29,23 +29,23 @@ function mostrarEstructura() {
         if (formatoValue === '1005') { // Formato 1005
             encabezados = [
                 "Tipo de Documento", "Numero de identificación del informado", "DV",
-                "Primer apellido del informado", "Segundo apellido del informado", 
-                "Otros nombres del informado", "Razón social informado", 
+                "Primer apellido del informado", "Segundo apellido del informado",
+                "Otros nombres del informado", "Razón social informado",
                 "Impuesto descontable", "IVA resultante por devoluciones en ventas anuladas, rescindidas o resueltas"
             ];
         } else if (formatoValue === '1006') { // Formato 1006
             encabezados = [
                 "Tipo de Documento", "Numero de identificación", "DV",
-                "Primer apellido del informado", "Segundo apellido del informado", 
-                "Otros nombres del informado", "Razón social informado", 
+                "Primer apellido del informado", "Segundo apellido del informado",
+                "Otros nombres del informado", "Razón social informado",
                 "Impuesto generado", "IVA recuperado en devoluciones en compras anuladas. rescindidas o resueltas",
                 "Impuesto al consumo"
             ];
         } else if (formatoValue === '1007') { // Formato 1007
             encabezados = [
                 "Concepto", "Tipo de documento", "Número identificación del informado",
-                "Primer apellido del informado", "Segundo apellido del informado", 
-                "Primer nombre del informado", "Otros nombres del informado", 
+                "Primer apellido del informado", "Segundo apellido del informado",
+                "Primer nombre del informado", "Otros nombres del informado",
                 "País de residencia o domicilio", "Ingresos brutos recibidos ",
                 "Devoluciones, rebajas y descuentos"
             ];
@@ -58,7 +58,7 @@ function mostrarEstructura() {
         var filaEncabezados = document.createElement('tr');
 
         // Agregar cada encabezado a la fila
-        encabezados.forEach(function(item) {
+        encabezados.forEach(function (item) {
             var th = document.createElement('th'); // Crear una celda de encabezado (th)
             th.textContent = item; // Establecer el texto del encabezado
             filaEncabezados.appendChild(th); // Agregar el encabezado a la fila
@@ -79,7 +79,7 @@ function cerrarModal() {
 }
 
 // Usamos 'DOMContentLoaded' para asegurar que el DOM esté completamente cargado antes de ejecutar el script
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     var formatoElement = document.getElementById("id_file_format");
 
     const estructuraDialog = document.getElementById("estructuraDialog");
@@ -90,17 +90,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (formatoElement) {
         // Agregar el listener para detectar el cambio de selección
         formatoElement.addEventListener("change", mostrarEstructura);
-    
+
     } else {
         console.error('El campo de selección de formato no se encuentra en el DOM.');
     }
 });
 
 // Función para ocultar las alertas después de 5 segundos
-window.onload = function() {
-    setTimeout(function() {
+window.onload = function () {
+    setTimeout(function () {
         var alerts = document.querySelectorAll('.alert');
-        alerts.forEach(function(alert) {
+        alerts.forEach(function (alert) {
             alert.style.display = 'none'; // Ocultar las alertas
         });
     }, 5000); // Las alertas desaparecen después de 5 segundos
@@ -139,20 +139,20 @@ function moverTarea(event, targetColumn) {
                 estado: nuevoEstado
             })
         })
-        .then(response => response.json())
-        .then(data => {
-            console.log('tarea id: '+tareaId);
-            console.log('nuevo estado: '+nuevoEstado)
-            if (data.success) {
-                // Recargar la página para ver los cambios reflejados
-                location.reload();
-            } else {
-                alert("Error al actualizar la tarea.");
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-        });
+            .then(response => response.json())
+            .then(data => {
+                console.log('tarea id: ' + tareaId);
+                console.log('nuevo estado: ' + nuevoEstado)
+                if (data.success) {
+                    // Recargar la página para ver los cambios reflejados
+                    location.reload();
+                } else {
+                    alert("Error al actualizar la tarea.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
     }
 }
 
@@ -208,25 +208,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         estado: nuevoEstado
                     })
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.success) {
-                        alert("Error al actualizar la tarea.");
-                    }else{
-                        location.reload();
-                    }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                });
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            alert("Error al actualizar la tarea.");
+                        } else {
+                            location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                    });
             }
         });
     });
 });
 
 // Función que se activa al hacer clic en una tarea
-window.editarTarea = function(id, titulo, descripcion, fecha, clienteId){
-    
+window.editarTarea = function (id, titulo, descripcion, fecha, clienteId) {
+
     // Llenar los datos del modal con los datos de la tarea
     document.getElementById('tareaTitulo').value = titulo;
     document.getElementById('tareaDescripcion').value = descripcion;
@@ -246,73 +246,83 @@ window.editarTarea = function(id, titulo, descripcion, fecha, clienteId){
 // Función para guardar los cambios
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('formEditarTarea');
-  
+
     if (form) {
-      form.addEventListener('submit', function (event) {
-        event.preventDefault();
-  
-        const tareaId = form.getAttribute('data-id');
-        const titulo = document.getElementById('tareaTitulo').value.trim();
-        const descripcion = document.getElementById('tareaDescripcion').value.trim();
-        const fecha = document.getElementById('tareaFecha').value;
-        const clienteId = document.getElementById('tareaCliente').value;
-  
-        if (!titulo || !descripcion || !fecha) {
-          alert("Por favor completá todos los campos.");
-          return;
-        }
-  
-        const urlBase = document.getElementById('url-editar-tarea').dataset.url;
-        const url = urlBase.replace(/0\/?$/, `${tareaId}/`);
-  
-        fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken()
-          },
-          body: JSON.stringify({
-            titulo: titulo,
-            descripcion: descripcion,
-            fecha: fecha,
-            cliente_id: clienteId || null
-          })
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              location.reload();
-            } else {
-              alert("Hubo un error al guardar la tarea.");
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const tareaId = form.getAttribute('data-id');
+            const titulo = document.getElementById('tareaTitulo').value.trim();
+            const descripcion = document.getElementById('tareaDescripcion').value.trim();
+            const fecha = document.getElementById('tareaFecha').value;
+            const clienteId = document.getElementById('tareaCliente').value;
+
+            if (!titulo || !descripcion || !fecha) {
+                alert("Por favor completá todos los campos.");
+                return;
             }
-          })
-          .catch(error => console.error("Error:", error));
-  
-        const modal = bootstrap.Modal.getInstance(document.getElementById('editarTareaModal'));
-        if (modal) modal.hide();
-      });
+
+            const urlBase = document.getElementById('url-editar-tarea').dataset.url;
+            const url = urlBase.replace(/0\/?$/, `${tareaId}/`);
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    titulo: titulo,
+                    descripcion: descripcion,
+                    fecha: fecha,
+                    cliente_id: clienteId || null
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert("Hubo un error al guardar la tarea.");
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editarTareaModal'));
+            if (modal) modal.hide();
+        });
     }
-  });
-  
+});
+
 
 
 // Función para formatear la fecha en YYYY-MM-DD
 function formatearFecha(fecha) {
-    const dateObj = new Date(fecha);
+    /**const dateObj = new Date(fecha);
     const anio = dateObj.getFullYear();
     const mes = String(dateObj.getMonth() + 1).padStart(2, '0');
     const dia = String(dateObj.getDate()).padStart(2, '0');
-    return `${anio}-${mes}-${dia}`;
+    return `${anio}-${mes}-${dia}`;**/
+
+    if (!fecha) return "";
+
+    // Si viene como "YYYY-MM-DD"
+    if (fecha.length === 10) {
+        return fecha;
+    }
+
+    // Si viene como "YYYY-MM-DDTHH:MM:SS"
+    return fecha.split('T')[0];
 }
 //habilidar tooltip
 document.addEventListener('DOMContentLoaded', function () {
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-      new bootstrap.Tooltip(tooltipTriggerEl);
+        new bootstrap.Tooltip(tooltipTriggerEl);
     });
-  });
-  
-  window.eliminarTarea = function(tareaId){
+});
+
+window.eliminarTarea = function (tareaId) {
     // Confirmación de eliminación
     if (confirm('¿Estás seguro que quieres eliminar esta tarea?')) {
         // Enviar la solicitud para eliminar la tarea
@@ -324,24 +334,24 @@ document.addEventListener('DOMContentLoaded', function () {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken() 
+                'X-CSRFToken': getCSRFToken()
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Actualizar la interfaz o eliminar la tarea del DOM
-                alert('Tarea eliminada correctamente');
-                location.reload();
-            
-            } else {
-                alert('Hubo un error al eliminar la tarea');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error en la eliminación de la tarea');
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar la interfaz o eliminar la tarea del DOM
+                    alert('Tarea eliminada correctamente');
+                    location.reload();
+
+                } else {
+                    alert('Hubo un error al eliminar la tarea');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error en la eliminación de la tarea');
+            });
     }
 }
 
@@ -371,44 +381,44 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalEl = document.getElementById('modalExportarReporte');
     const form = document.getElementById('formExportarReporte');
     const errorDiv = document.getElementById('exportarErrores');
-  
+
     modalEl.addEventListener('show.bs.modal', function () {
-      form.reset();
-      errorDiv.classList.add('d-none');
-      errorDiv.style.display = 'none';
-      errorDiv.innerHTML = '';
+        form.reset();
+        errorDiv.classList.add('d-none');
+        errorDiv.style.display = 'none';
+        errorDiv.innerHTML = '';
     });
-  
+
     form.addEventListener('submit', function (event) {
-      const cliente = document.getElementById('clienteSelect').value;
-      const fechaInicio = document.getElementById('fechaInicio').value;
-      const fechaFin = document.getElementById('fechaFin').value;
-  
-      let errores = [];
-  
-      if (!cliente) errores.push('Por favor seleccioná un cliente.');
-      if (!fechaInicio || !fechaFin) {
-        errores.push('Por favor completá los 2 campos de fecha.');
-      } else if (fechaInicio > fechaFin) {
-        errores.push('La fecha de inicio no puede ser posterior a la fecha de fin.');
-      }
-  
-      if (errores.length > 0) {
-        event.preventDefault();
-        errorDiv.innerHTML = errores.join('<br>');
-        errorDiv.classList.remove('d-none');
-        errorDiv.style.display = 'block';
-  
-        // Ocultar automáticamente el mensaje después de 5 segundos
-        setTimeout(() => {
-          errorDiv.classList.add('d-none');
-          errorDiv.style.display = 'none';
-          errorDiv.innerHTML = '';
-        }, 5000);
-      }
+        const cliente = document.getElementById('clienteSelect').value;
+        const fechaInicio = document.getElementById('fechaInicio').value;
+        const fechaFin = document.getElementById('fechaFin').value;
+
+        let errores = [];
+
+        if (!cliente) errores.push('Por favor seleccioná un cliente.');
+        if (!fechaInicio || !fechaFin) {
+            errores.push('Por favor completá los 2 campos de fecha.');
+        } else if (fechaInicio > fechaFin) {
+            errores.push('La fecha de inicio no puede ser posterior a la fecha de fin.');
+        }
+
+        if (errores.length > 0) {
+            event.preventDefault();
+            errorDiv.innerHTML = errores.join('<br>');
+            errorDiv.classList.remove('d-none');
+            errorDiv.style.display = 'block';
+
+            // Ocultar automáticamente el mensaje después de 5 segundos
+            setTimeout(() => {
+                errorDiv.classList.add('d-none');
+                errorDiv.style.display = 'none';
+                errorDiv.innerHTML = '';
+            }, 5000);
+        }
     });
-  });
-  
-  
-  
+});
+
+
+
 

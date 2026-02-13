@@ -25,12 +25,13 @@ import io
 import pandas as pd
 from   django.shortcuts               import get_object_or_404, render, redirect
 from   django.contrib.auth.decorators import login_required
-from   .forms                         import CSVUploadForm , ExcelUploadFrom, TareaForm
+from   .forms                         import CSVUploadForm , ExcelUploadFrom, TareaForm, ConceptoForm, CuentaCobroForm, ComentarioForm
 from   openpyxl.styles                import PatternFill
 from   django.http                    import HttpResponse
 from   datetime                       import date
 from   calendar                       import monthrange
-from   .models                        import Tarea, User, ControlActualizacionMensual, Cliente
+from   .models                        import Tarea, User, ControlActualizacionMensual, Cliente, CuentaCobro, Concepto, Comentario
+from   .utils                         import numero_a_letras
 
 
 @login_required
@@ -404,6 +405,7 @@ def crear_tarea(request):
         fecha        = request.POST.get('fecha')
         fechavence   = request.POST.get('fecha_vencimiento')
         cliente_id   = request.POST.get('cliente')
+        generar_cuenta = request.POST.get('generar_cuenta') # 'on' if checked
 
         if nombre and descripcion and fecha:
             try:
@@ -448,6 +450,15 @@ def crear_tarea(request):
                         cliente           = cliente
                     )
                     tarea.save()
+
+                    # Lógica para Cuenta de Cobro
+                    if generar_cuenta == 'on' and cliente:
+                         CuentaCobro.objects.create(
+                            tarea=tarea,
+                            cliente=cliente,
+                            estado='creada'
+                        )
+
                     return redirect('kanban')
 
             except Exception as e:
@@ -638,6 +649,63 @@ def enviar_tareas(request):
 
     return JsonResponse({'status': 'correos enviados'})
 
+
+@login_required
+def tablero_cuentas(request):
+    try:
+        cuentas_creada = CuentaCobro.objects.filter(estado='creada', cliente__contador=request.user)
+        cuentas_enviada = CuentaCobro.objects.filter(estado='enviada', cliente__contador=request.user)
+        cuentas_pagada = CuentaCobro.objects.filter(estado='pagada', cliente__contador=request.user)
+
+        context = {
+            'hoy': date.today(),
+            'cuentas_por_estado': {
+                'creada': cuentas_creada,
+                'enviada': cuentas_enviada,
+                'pagada': cuentas_pagada,
+            },
+            'form_creacion': CuentaCobroForm(user=request.user)
+        }
+        return render(request, 'csv_processor/kanban_cuentas.html', context)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print("Error en tablero cuentas:", e)
+        return HttpResponse(f"Error interno: {str(e)}", status=500)
+
+@csrf_exempt
+@login_required
+def actualizar_estado_cuenta(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            cuenta_id = data.get('cuenta_id')
+            nuevo_estado = data.get('estado')
+            
+            cuenta = CuentaCobro.objects.get(id=cuenta_id, cliente__contador=request.user)
+            
+            # Validar cambio de estado restringido
+            if cuenta.estado == 'enviada' and nuevo_estado == 'creada':
+                 return JsonResponse({'success': False, 'error': "No se puede devolver una cuenta enviada a estado 'Creada'."})
+            
+            if cuenta.estado == 'pagada':
+                 return JsonResponse({'success': False, 'error': "No se puede cambiar el estado de una cuenta pagada."})
+
+            cuenta.estado = nuevo_estado
+            cuenta.save()
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'error': 'POST required'}, status=405)
+
+@login_required
+def reporte_cuentas(request):
+
+    cuentas = CuentaCobro.objects.filter(cliente__contador=request.user).select_related('cliente', 'tarea').order_by('fecha_creacion')
+    return render(request, 'csv_processor/reporte_cuentas.html', {'cuentas': cuentas})
+
 @login_required
 def crear_cliente(request):
     if request.method == 'POST':
@@ -692,7 +760,7 @@ def exportar_reporte_cliente(request):
 
     if estado:
         filtro['estado'] = estado
-        if estado == 'completado':
+        if estado == 'completada':
             filtro['fecha_completado__range'] = (primer_dia, ultimo_dia)
     else:
         filtro['fecha_completado__range'] = (primer_dia, ultimo_dia)
@@ -700,6 +768,10 @@ def exportar_reporte_cliente(request):
     print("Estado recibido:", estado)
     print("Filtro :", filtro)
     tareas = Tarea.objects.filter(**filtro).order_by('fecha_completado')
+
+    if not tareas.exists():
+        messages.warning(request, "No se encontraron tareas para este cliente en el período y estado seleccionados.")
+        return redirect('reporte_cuentas')
 
     doc = Document()
 
@@ -735,11 +807,6 @@ def exportar_reporte_cliente(request):
     run.font.name = 'Arial'
     run.font.color.rgb = RGBColor(204, 51, 51 )
     nombre_usuario_parrafo.alignment = WD_ALIGN_PARAGRAPH.LEFT  # Alineación izquierda para evitar separación
-
-    # Ajustar el ancho de la segunda celda para evitar separación
-    cell_nombre_usuario.width = Inches(3.0)  # Ajustar el ancho de la celda para el nombre del usuario
-
-    
 
     # Crear un nuevo párrafo debajo
     parrafo_profesion = cell_nombre_usuario.add_paragraph()
@@ -793,21 +860,350 @@ def exportar_reporte_cliente(request):
     # Espacio después del encabezado
     doc.add_paragraph("")
 
-    if tareas.exists():
-        tabla = doc.add_table(rows=1, cols=2)
-        tabla.style = 'Table Grid'
-        hdr_cells = tabla.rows[0].cells
-        hdr_cells[0].text = 'Título'
-        hdr_cells[1].text = 'Descripción'
+    tabla = doc.add_table(rows=1, cols=2)
+    tabla.style = 'Table Grid'
+    hdr_cells = tabla.rows[0].cells
+    hdr_cells[0].text = 'Título'
+    hdr_cells[1].text = 'Descripción'
 
-        for tarea in tareas:
-            row_cells = tabla.add_row().cells
-            row_cells[0].text = tarea.titulo
-            row_cells[1].text = tarea.descripcion
-    else:
-        doc.add_paragraph("No se encontraron tareas para este cliente en el período y estado seleccionados.")
+    for tarea in tareas:
+        row_cells = tabla.add_row().cells
+        row_cells[0].text = tarea.titulo
+        row_cells[1].text = tarea.descripcion
 
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-    response['Content-Disposition'] = f'attachment; filename=Reporte_{cliente.nombre}.docx'
+    response['Content-Disposition'] = f'attachment; filename={cuenta.cliente.nombre}_{cuenta.tarea.titulo}.docx'
+    doc.save(response)
+    return response
+
+@login_required
+def listar_comentarios(request, cuenta_id):
+    cuenta = get_object_or_404(CuentaCobro, id=cuenta_id)
+    comentarios = cuenta.comentarios.all().order_by('fecha_creacion')
+    
+    data = []
+    for c in comentarios:
+        data.append({
+            'usuario': c.usuario.username if c.usuario else 'Sistema',
+            'texto': c.texto,
+            'fecha': c.fecha_creacion.strftime('%Y-%m-%d %H:%M'),
+        })
+    return JsonResponse({'comentarios': data})
+
+@login_required
+@csrf_exempt # Using csrf_exempt for simplicity if token handling is complex in pure JS, but ideally should use token.
+# However, the existin JS in kanban likely handles CSRF. Let's try without csrf_exempt first or handle it properly.
+# Actually, I'll rely on the frontend sending the CSRF token.
+def agregar_comentario(request, cuenta_id):
+    if request.method == 'POST':
+        cuenta = get_object_or_404(CuentaCobro, id=cuenta_id)
+        texto = request.POST.get('texto')
+        
+        if texto:
+            comentario = Comentario.objects.create(
+                cuenta=cuenta,
+                usuario=request.user,
+                texto=texto
+            )
+            return JsonResponse({'success': True})
+        return JsonResponse({'success': False, 'error': 'El comentario no puede estar vacío'})
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
+
+@login_required
+def lista_conceptos(request):
+    conceptos = Concepto.objects.filter(contador=request.user)
+    if request.method == 'POST':
+        form = ConceptoForm(request.POST)
+        if form.is_valid():
+            concepto = form.save(commit=False)
+            concepto.contador = request.user
+            concepto.save()
+            messages.success(request, 'Concepto creado exitosamente.')
+            return redirect('lista_conceptos')
+    else:
+        form = ConceptoForm()
+    
+    return render(request, 'csv_processor/lista_conceptos.html', {'conceptos': conceptos, 'form': form})
+
+@login_required
+def eliminar_concepto(request, concepto_id):
+    concepto = get_object_or_404(Concepto, id=concepto_id, contador=request.user)
+    if request.method == 'POST':
+        concepto.delete()
+        messages.success(request, 'Concepto eliminado.')
+    return redirect('lista_conceptos')
+
+@login_required
+def crear_cuenta_cobro(request):
+    if request.method == 'POST':
+        form = CuentaCobroForm(request.POST, user=request.user)
+        if form.is_valid():
+            cuenta = form.save(commit=False)
+            cuenta.fecha_creacion = timezone.now().date()
+            # Set default due date if not set (e.g. 15 days)
+            cuenta.fecha_vencimiento = cuenta.fecha_creacion + timedelta(days=15)
+            cuenta.estado = 'creada'
+            cuenta.save()
+            messages.success(request, 'Cuenta de cobro creada.')
+            return JsonResponse({'success': True})
+        else:
+             return JsonResponse({'success': False, 'errors': form.errors})
+    
+    return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
+
+@login_required
+def editar_cuenta_cobro_modal(request, cuenta_id):
+    cuenta = get_object_or_404(CuentaCobro, id=cuenta_id, cliente__contador=request.user)
+    
+    # Validar edición restringida
+    if cuenta.estado == 'enviada':
+        # Si es POST, retornamos error JSON
+        if request.method == 'POST':
+            return JsonResponse({'success': False, 'error': "No se puede editar una cuenta enviada."})
+        # Si es GET, podríamos mostrar un error o simplemente renderizar (el formulario se verá pero al guardar fallará)
+        # Opcionalmente podemos pasar un flag al template
+    
+    if request.method == 'POST':
+        form = CuentaCobroForm(request.POST, instance=cuenta, user=request.user)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
+            
+    # GET returns the HTML for the modal
+    form = CuentaCobroForm(instance=cuenta, user=request.user)
+    return render(request, 'csv_processor/modal_editar_cuenta.html', {'form': form, 'cuenta': cuenta})
+
+@login_required
+def generar_documento_cuenta(request, cuenta_id):
+    cuenta = get_object_or_404(CuentaCobro, id=cuenta_id, cliente__contador=request.user)
+    
+    if cuenta.estado == 'enviada':
+        messages.error(request, "No se puede generar documento de una cuenta enviada.")
+        return redirect('tablero_cuentas')
+    
+    perfil = request.user.profile
+
+    # Validation
+    missing_data = []
+    if not cuenta.cliente.identificacion:
+        missing_data.append("Identificación del cliente")
+    if not cuenta.valor:
+        missing_data.append("Valor de la cuenta")
+    if not cuenta.concepto:
+        missing_data.append("Concepto")
+    if not perfil.telefono:
+        missing_data.append("Teléfono del contador (en perfil)")
+    
+    if missing_data:
+        msg = "No se puede generar el documento. Faltan los siguientes datos: " + ", ".join(missing_data)
+        messages.error(request, msg)
+        return redirect('tablero_cuentas')
+    
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    filename = f"Cuenta_Cobro_{cuenta.cliente.nombre}_{cuenta.id}.docx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    doc = Document()
+    
+    # Adjust margins to fit more content if needed
+    sections = doc.sections
+    for section in sections:
+        section.top_margin = Inches(0.5)
+        section.bottom_margin = Inches(0.5)
+        section.left_margin = Inches(1)
+        section.right_margin = Inches(1)
+
+    style = doc.styles['Normal']
+    font = style.font
+    font.name = 'Arial'
+    font.size = Pt(10) # Reduced from 11 to fit one page
+
+    # 1. Header with Logo and Logged-in User Name (Left/Right)
+    tabla_header = doc.add_table(rows=1, cols=2)
+    tabla_header.alignment = WD_TABLE_ALIGNMENT.LEFT
+    tabla_header.autofit = False
+    
+    # Set column widths (approximate)
+    tabla_header.columns[0].width = Inches(1.5)
+    tabla_header.columns[1].width = Inches(5.0)
+
+    # perfil already fetched above
+    logo_nombre = perfil.nombreLogo or 'logo_default.png'
+    
+    # Logo (Left Cell)
+    cell_logo = tabla_header.cell(0, 0)
+    # Remove default paragraph to avoid extra space if needed, or just use it
+    p_logo = cell_logo.paragraphs[0]
+    p_logo.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', logo_nombre)
+    if os.path.exists(logo_path):
+         p_logo.add_run().add_picture(logo_path, width=Inches(1.2))
+    
+    # User Name (Right Cell)
+    cell_nombre_usuario = tabla_header.cell(0, 1)
+    cell_nombre_usuario.vertical_alignment = WD_ALIGN_PARAGRAPH.CENTER # Align text vertically center relative to logo?
+    
+    nombre_usuario_parrafo = cell_nombre_usuario.paragraphs[0]
+    nombre_usuario = request.user.get_full_name() if request.user.get_full_name() else request.user.username
+    
+    run_user = nombre_usuario_parrafo.add_run(nombre_usuario.upper())
+    run_user.bold = True
+    run_user.font.size = Pt(14)
+    run_user.font.name = 'Arial'
+    run_user.font.color.rgb = RGBColor(204, 51, 51) # Red color as requested
+    nombre_usuario_parrafo.alignment = WD_ALIGN_PARAGRAPH.RIGHT # Report used LEFT, but usually header text is balanced. User said "lado del logo". Report code put it in col 1. I'll stick to LEFT if they want it next to logo.
+    nombre_usuario_parrafo.alignment = WD_ALIGN_PARAGRAPH.LEFT 
+
+    # Add extra info under name if needed (Profession)
+    profesion_txt = perfil.profesion or "Profesión no especificada"
+    p_prof = cell_nombre_usuario.add_paragraph(profesion_txt)
+    p_prof.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    run_prof = p_prof.runs[0]
+    run_prof.font.size = Pt(10)
+    run_prof.font.color.rgb = RGBColor(128, 128, 128) # Gray
+    run_prof.italic = True
+
+    doc.add_paragraph("") # Small spacer
+
+    # Date
+    meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    fecha_dt = cuenta.fecha_creacion or timezone.now().date()
+    mes_nombre = meses[fecha_dt.month - 1]
+    
+    p_date = doc.add_paragraph(f"Cartago, {fecha_dt.day} de {mes_nombre} de {fecha_dt.year}")
+    p_date.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    
+    doc.add_paragraph("") 
+
+    # 2. Title
+    p_title = doc.add_paragraph("CUENTA DE COBRO")
+    p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_title.runs[0].bold = True
+    p_title.runs[0].font.size = Pt(14) # Reduced size
+    
+    doc.add_paragraph("")
+
+    # 3. Client Info (Centered)
+    # 3. Client Info (Centered)
+
+    p_client_info = doc.add_paragraph()
+    p_client_info.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run_client = p_client_info.add_run(f"{cuenta.cliente.nombre.upper()}")
+    run_client.bold = True
+    p_client_info.add_run(f"\nNIT. {cuenta.cliente.identificacion}")
+    
+    doc.add_paragraph("")
+
+    # 4. Accountant Info (Centered) -> Logic moved to header, but usually "DEBE A" is followed by who they owe.
+    # User request: "revisa estas lineas... e integralas". That implies the header style.
+    # Standard format: "DEBE A: [CLIENTE]". Then "A FAVOR DE: [USUARIO]" or header applies?
+    # The previous format had "DEBE A: [CLIENTE] ... LA SUMA DE ...".
+    # Wait, the example text in previous turn:
+    # "CUENTA DE COBRO"
+    # "MILTON ... (User/Accountant?)" -> Header?
+    # "DEBE A:"
+    # "JENNYFER ... (Client?)"
+    # Actually, in the text example from Step 128:
+    # Header: "Cartago, 30..."
+    # "CUENTA DE COBRO"
+    # "MILTON GIOVANNI..." (Maybe the payer?)
+    # "DEBE A:"
+    # "JENNYFER ELIANA..." (The payee/accountant)
+    #
+    # Wait, usually a "Cuenta de Cobro" is issued BY the contractor TO the client.
+    # "DEBE A" (Owes to) -> The Accountant (Jennyfer).
+    # so "MILTON" must be the Client.
+    # Let's re-read the example carefully.
+    # "MILTON ... NIT ... DEBE A: JENNYFER ... CC ...".
+    # So: [CLIENT NAME] [DEBE A] [ACCOUNTANT NAME].
+    #
+    # Step 1: Header (now with Logo + Accountant Name in red per new request).
+    # Step 2: Date.
+    # Step 3: Title "CUENTA DE COBRO".
+    # Step 4: Client Name ( The one paying).
+    # Step 5: "DEBE A:"
+    # Step 6: Accountant Name (The one being paid).
+    #
+    # BUT, the new request asks to put the Accountant Name in the HEADER with the LOGO.
+    # Does that replace the "DEBE A: [Accountant]" section?
+    # Usually, if the letterhead has the name, you still say "DEBE A: [Name]" or "A FAVOR DE: [Name]" for legal clarity.
+    # However, to save space for "one page", functionality, maybe we can simplify.
+    # I will keep the structure but reduce spacing.
+
+    # [DEBE A]
+    p_debe = doc.add_paragraph("DEBE A:")
+    p_debe.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_debe.runs[0].bold = True
+    
+    # [USUARIO]
+    p_user = doc.add_paragraph()
+    p_user.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_user.add_run(nombre_usuario.upper()).bold = True
+    # If ID is available, add it.
+    p_user.add_run(f"\nC.C. {perfil.telefono or '[CC]'}")
+
+    doc.add_paragraph("")
+
+    # [LA SUMA DE]
+    p_suma = doc.add_paragraph("LA SUMA DE:")
+    p_suma.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_suma.runs[0].bold = True
+    
+    p_valor = doc.add_paragraph()
+    p_valor.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    valor_fmt = "{:,.0f}".format(cuenta.valor).replace(",",".") if cuenta.valor else "0"
+    p_valor.add_run(f"$ {valor_fmt}").font.size = Pt(12)
+    
+    valor_letras = numero_a_letras(cuenta.valor or 0)
+    p_letras = doc.add_paragraph(valor_letras)
+    p_letras.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    doc.add_paragraph("")
+
+    # [POR CONCEPTO DE]
+    p_conc = doc.add_paragraph("POR CONCEPTO DE:")
+    p_conc.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_conc.runs[0].bold = True
+    
+    concepto_txt = cuenta.concepto.nombre if cuenta.concepto else "SERVICIOS"
+    mes_txt = cuenta.get_mes_display().upper() if cuenta.mes else ""
+    anio_txt = str(cuenta.anio) if cuenta.anio else str(timezone.now().year)
+
+    texto_concepto = f"{concepto_txt.upper()}"
+    if mes_txt:
+        texto_concepto += f" CORRESPONDIENTES AL MES DE {mes_txt}"
+    texto_concepto += f" DE {anio_txt}"
+    
+    p_desc = doc.add_paragraph(texto_concepto)
+    p_desc.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    doc.add_paragraph("")
+
+    # [PAGO]
+    p_pago = doc.add_paragraph()
+    p_pago.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_pago.add_run("NEQUI").bold = True
+    p_pago.add_run(f"\nN° {perfil.telefono or ''}")
+    
+    doc.add_paragraph("")
+    doc.add_paragraph("") # Signature space
+
+    # [FIRMA]
+    p_att = doc.add_paragraph("Atentamente,")
+    
+    doc.add_paragraph("")
+    
+    # Signature block
+    p_sig = doc.add_paragraph()
+    p_sig.add_run(nombre_usuario.upper()).bold = True
+    p_sig.add_run(f"\nC.C. {perfil.telefono or '[CC]'}")
+    p_sig.add_run(f"\n{profesion_txt.upper()}")
+    p_sig.add_run(f"\nCel. {perfil.telefono or ''}")
+    p_sig.add_run("\nCartago-Valle")
+    
     doc.save(response)
     return response

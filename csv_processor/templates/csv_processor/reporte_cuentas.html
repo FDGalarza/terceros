@@ -1,0 +1,49 @@
+{% extends 'csv_processor/head.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">📋 Reporte de Cuentas de Cobro</h1>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Cliente</th>
+                    <th>Tarea Asociada</th>
+                    <th>Estado</th>
+                    <th>Fecha Creación</th>
+                    <th>Fecha Vencimiento</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cuenta in cuentas %}
+                <tr>
+                    <td>{{ cuenta.cliente.nombre }}</td>
+                    <td>{{ cuenta.tarea.titulo }}</td>
+                    <td>
+                        <span class="badge 
+                            {% if cuenta.estado == 'creada' %}bg-warning text-dark
+                            {% elif cuenta.estado == 'enviada' %}bg-info text-dark
+                            {% elif cuenta.estado == 'pagada' %}bg-success
+                            {% else %}bg-secondary
+                            {% endif %}">
+                            {{ cuenta.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>{{ cuenta.fecha_creacion|default:"-" }}</td>
+                    <td>{{ cuenta.fecha_vencimiento|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No hay cuentas de cobro registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'tablero_cuentas' %}" class="btn btn-primary">🔙 Volver al Tablero</a>
+    </div>
+</div>
+{% endblock %}
