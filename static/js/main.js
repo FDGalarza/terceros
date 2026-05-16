@@ -28,7 +28,7 @@ function mostrarEstructura() {
         var encabezados;
         if (formatoValue === '1005') { // Formato 1005
             encabezados = [
-                "Tipo de Documento", "Numero de identificación del informado", "DV",
+                "Tipo de Documento", "DV", "Numero de identificación del informado",
                 "Primer apellido del informado", "Segundo apellido del informado",
                 "Otros nombres del informado", "Razón social informado",
                 "Impuesto descontable", "IVA resultante por devoluciones en ventas anuladas, rescindidas o resueltas"
@@ -45,7 +45,7 @@ function mostrarEstructura() {
             encabezados = [
                 "Concepto", "Tipo de documento", "Número identificación del informado",
                 "Primer apellido del informado", "Segundo apellido del informado",
-                "Primer nombre del informado", "Otros nombres del informado",
+                "Primer nombre del informado", "Otros nombres del informado", "Razón social informado",
                 "País de residencia o domicilio", "Ingresos brutos recibidos ",
                 "Devoluciones, rebajas y descuentos"
             ];
@@ -355,7 +355,7 @@ window.eliminarTarea = function (tareaId) {
     }
 }
 
-//descargar formatos de como archivos de excel
+//descargar formatos como archivos de excel
 function downloadTableAsXLSX() {
     var table = document.getElementById("estructura_tabla");
     var currentPath = window.location.pathname;
@@ -369,9 +369,11 @@ function downloadTableAsXLSX() {
     var nombreArchivo = formatoValue;
 
     if (currentPath.endsWith("procesar_excel")) {
-        var wb = XLSX.utils.table_to_book(table, { sheet: "Hoja 1" });
-        XLSX.writeFile(wb, nombreArchivo + ".xls");
-        console.log("Descargando como .xls");
+        // Opción 1: Para .xlsx (recomendado, Excel moderno)
+        var wb = XLSX.utils.table_to_book(table, { sheet: "Hoja 1", raw: true });
+        XLSX.writeFile(wb, nombreArchivo + ".xlsx");
+        console.log("Descargando como .xlsx");
+
     } else {
         alert("Ruta no reconocida para descarga.");
     }

@@ -38,7 +38,7 @@ from   .utils                         import numero_a_letras
 def home(request):
     return render(request, 'csv_processor/home.html')
 
-def obtener_usuario_predeterminado():
+def obtener_usuario_predeterminado(request):
     return User.objects.get(username='Eliana')  # o el username que hayas creado
 
     # en tu vista:
@@ -652,13 +652,43 @@ def enviar_tareas(request):
 
 @login_required
 def tablero_cuentas(request):
+    hoy = date.today()
+    anio = int(request.GET.get('anio', hoy.year))
+    mes = int(request.GET.get('mes', hoy.month))
+    
     try:
-        cuentas_creada = CuentaCobro.objects.filter(estado='creada', cliente__contador=request.user)
-        cuentas_enviada = CuentaCobro.objects.filter(estado='enviada', cliente__contador=request.user)
-        cuentas_pagada = CuentaCobro.objects.filter(estado='pagada', cliente__contador=request.user)
-
+        # Convertir mes a string con 2 dígitos para coincidir con el modelo
+        mes_str = str(mes).zfill(2)  # '1' -> '01', '12' -> '12'
+        
+        # Filtrar cuentas usando mes y año
+        cuentas_creada = CuentaCobro.objects.filter(
+            estado='creada',
+            cliente__contador=request.user,
+            mes=mes_str,
+            anio=anio
+        ).order_by('fecha_vencimiento')
+        
+        cuentas_enviada = CuentaCobro.objects.filter(
+            estado='enviada',
+            cliente__contador=request.user,
+            mes=mes_str,
+            anio=anio
+        ).order_by('fecha_vencimiento')
+        
+        cuentas_pagada = CuentaCobro.objects.filter(
+            estado='pagada',
+            cliente__contador=request.user,
+            mes=mes_str,
+            anio=anio
+        ).order_by('fecha_vencimiento')
+        
+        # Calcular primer y último día del mes para mostrar en el template
+        primer_dia = date(anio, mes, 1)
+        
         context = {
-            'hoy': date.today(),
+            'hoy': primer_dia,
+            'anio': anio,
+            'mes': mes,
             'cuentas_por_estado': {
                 'creada': cuentas_creada,
                 'enviada': cuentas_enviada,
@@ -667,7 +697,7 @@ def tablero_cuentas(request):
             'form_creacion': CuentaCobroForm(user=request.user)
         }
         return render(request, 'csv_processor/kanban_cuentas.html', context)
-
+        
     except Exception as e:
         import traceback
         traceback.print_exc()

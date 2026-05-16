@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'procesar_csv.wsgi.app'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DJANGO_ENV = config('DJANGO_ENV', default='development')
+DJANGO_ENV = config('DJANGO_ENV', default='production')
 
 if DJANGO_ENV == 'production':
     DATABASES = {
